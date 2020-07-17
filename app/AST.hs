@@ -19,8 +19,8 @@ predef Mul = intBinary (*)
 predef Div = intBinary quot
 predef Eq = VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x == y)))  -- It's possible this will be used on things other than ints, but comparing lambda terms is uncomputable, and it would be awkward in practice.
 predef Lt = VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x < y)))
-predef Mod = id -- It's not clear what the semantics of the squiggle literals is meant to be.
-predef Dem = id
+predef Mod = VFunction id -- It's not clear what the semantics of the squiggle literals is meant to be.
+predef Dem = VFunction id
 predef Send = undefined
 predef Neg = intUnary negate
 predef S = VFunction (\x -> VFunction (\y -> VFunction (\z -> apply (apply x z) (apply y z))))
@@ -43,17 +43,15 @@ predef Multipledraw = VFunction multipleDraw
           multipleDraw (VCons x xs) = VCons VPicture (multipleDraw xs)
 predef If0 = VFunction (\(VInt n) -> boolValue (n == 0))
 predef Interact = undefined
-predef Modem = id
+predef Modem = VFunction id
 predef F38 = undefined
 predef Statelessdraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VNil, vList [ vList [y]]]))
-predef Statefuldraw = undefined 
-  -- VFunction (\x -> VFunction (\y -> vList [VInt 0, VCons y x, vList [VCons y s]]))
+predef Statefuldraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VCons y x, vList [VCons y x]]))
 
-intUnary :: (Integer -> Integer) -> Value -> Value
-intUnary f = undefined 
-  -- VFunction (\(VInt n) -> VInt (f n))
+intUnary :: (Integer -> Integer) -> Value
+intUnary f = VFunction (\(VInt n) -> VInt (f n))
 
-intBinary :: (Integer -> Integer -> Integer) -> Value -> Value
+intBinary :: (Integer -> Integer -> Integer) -> Value
 intBinary f = VFunction (\(VInt n) -> intUnary (f n))
 
 apply = undefined
