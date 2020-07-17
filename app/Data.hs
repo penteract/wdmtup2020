@@ -1,4 +1,7 @@
 module Data (
+    Value(..),
+    serialize,
+    deserialize,
 ) where
 
 data Value = VFunction (Value -> Value) | VInt Integer | VCons Value Value | VNil | VPicture --I'll deal with actual pciture data later.
