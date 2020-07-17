@@ -4,6 +4,11 @@ import Data.ByteString.Lazy.UTF8 as BLU
 import Network.HTTP.Simple
 import System.Environment
 
+import Data
+import Parser
+import Solve
+
+
 main =
   catch
     ( do
@@ -11,6 +16,12 @@ main =
         if Prelude.length args < 2
           then putStrLn "Arguments required: URL to send to (including key: https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=7897f34898d14e438f654b62eb7f8673) and message to send."
           else do
+            file <- readFile "galaxy.txt"
+            let vals = parse file
+            let (VFunction f) = solve' 1338 (helper $ vals)
+            print (f (VInt 0))
+            -- server contact
+
             request' <- parseRequest ("POST " ++ (args !! 0))
             let request = setRequestBodyLBS (BLU.fromString (args !! 1)) request'
             response <- httpLBS request
