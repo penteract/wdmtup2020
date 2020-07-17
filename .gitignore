@@ -2,3 +2,4 @@
 .vscode
 Dockerfile
 stack.yaml.lock
+icfpc-mmxx-starterkit-haskell.cabal
