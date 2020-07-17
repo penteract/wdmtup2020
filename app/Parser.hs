@@ -4,7 +4,7 @@ where
 import AST
 
 parse :: String -> [Statement]
-parse s = (unlines s >>= (maybe [] . parseLine) )
+parse s = (lines s >>= (maybe [] return . parseLine) )
 
 
 parseLine :: String -> Maybe Statement
