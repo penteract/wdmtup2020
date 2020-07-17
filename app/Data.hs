@@ -19,8 +19,11 @@ instance Eq Value where
 instance Show Value where
   show (VFunction x) = "Fun"
   show (VInt n) = "V" ++ show n
-  show (VCons x y) = "(" ++ show x ++ ", " ++ show y ++ ")"
-  show VNil = "n"
+  show l@(VCons _ _) = "["++showList l
+    where showList (VCons x VNil) = show x ++ "]"
+          showList (VCons x xs@(VCons _ _)) = show x ++ ", " ++ showList xs
+          showList (VCons x y) = show x ++ " . " ++ show y ++ "]"
+  show VNil = "[]"
   show VPicture = "picture"
 
 serialize :: Value -> String
