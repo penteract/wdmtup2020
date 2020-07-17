@@ -1,0 +1,4 @@
+.stack-work
+.vscode
+Dockerfile
+stack.yaml.lock
