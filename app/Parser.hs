@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import Data.Char(toLower)
 
 parse :: String -> [Statement]
-parse s = (lines s >>= (maybe [] return . parseLine) )
+parse s = (init ({lines s}) >>= (maybe [] return . parseLine) )
 
 
 defStrings :: M.Map String Predef
