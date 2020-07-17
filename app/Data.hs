@@ -1,10 +1,11 @@
-module Data (
-    Value(..),
-    serialize,
-    deserialize,
-) where
+{-# LANGUAGE TemplateHaskell #-}
+
+module Data where
+
+import Control.Lens
 
 data Value = VFunction (Value -> Value) | VInt Integer | VCons Value Value | VNil | VPicture --I'll deal with actual pciture data later.
+makePrisms ''Value
 
 instance Show Value where
     show (VFunction x) = "Fun"
