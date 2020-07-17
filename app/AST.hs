@@ -9,7 +9,7 @@ type Val = Integer
 
 data Expr = Ap Expr Expr | List [Expr] | Operator Opr | Constant Val | Fn Predef deriving (Show)
 
-data Predef = Inc | Dec | Add | Mul | Div | Eq | Lt | Mod | Dem | Send | Neg | S | C | B | T | F | Pwr2 | I | Cone | Car | Cdr | Nil | Isnil | Vec | Draw | Checkerboard | Multipledraw | If0 | Interact | Modem | F38 | Interact | Statelessdraw | Statefuldraw deriving (Show)
+data Predef = Inc | Dec | Add | Mul | Div | Eq | Lt | Mod | Dem | Send | Neg | S | C | B | T | F | Pwr2 | I | Cons | Car | Cdr | Nil | Isnil | Vec | Draw | Checkerboard | Multipledraw | If0 | Interact | Modem | F38 | Statelessdraw | Statefuldraw deriving (Show)
 
 predef :: Predef -> Value
 predef Inc = intUnary (+1)
@@ -30,22 +30,23 @@ predef T = VFun (\x -> VFun (\y -> x))
 predef F = VFun (\x -> VFun (\y -> y))
 predef Pwr2 = intUnary (2^)
 predef I = VFun id
-predef Cone = undefined
-predef Car = undefined
-predef Cdr = undefined
-predef Nil = undefined
-predef Isnil = undefined
-predef Vec = undefined
-predef Draw = undefined
-predef Checkerboard = undefined
-predef Multipledraw = undefined
-predef If0 = undefined
+predef Cons = VFun (\x -> VFun (\y -> VCons x y))
+predef Car = VFun (\(VCons x y) -> x)
+predef Cdr = VFun (\(VCons x y) -> y)
+predef Nil = VNil
+predef Isnil = VFun (\x -> case x of {VNil -> boolValue True; _ -> boolValue False})
+predef Vec = predef Cons
+predef Draw = VFun (\x -> VPicture)
+predef Checkerboard = VFun (\x -> VFun (\y -> VPicture))
+predef Multipledraw = VFun multipleDraw
+    where multipleDraw VNil = VNil
+          multipleDraw (VCons x xs) = VCons VPicture (multipleDraw xs)
+predef If0 = VFun (\(VInt n) -> boolValue (n == 0))
 predef Interact = undefined
-predef Modem = undefined
+predef Modem = id
 predef F38 = undefined
-predef Interact = undefined
-predef Statelessdraw = undefined
-predef Statefuldraw = undefined
+predef Statelessdraw = VFun (\x -> VFun (\y -> vList [VInt 0, VNil, vList [ vList [y]]]))
+predef Statefuldraw = VFun (\x -> VFun (\y -> vList [VInt 0, VCons y x, vList [VCons y s]]))
 
 intUnary :: (Integer -> Integer) -> Value -> Value
 intUnary f = VFun (\(VInt n) -> VInt (f n))
@@ -56,3 +57,6 @@ intBinary f = VFum (\(VInt n) -> intUnary (f n))
 boolValue :: Bool -> Value
 boolValue True = predef T
 boolValue False = predef F
+
+vList :: [Value] -> Value
+vList = foldr VCons VNil
