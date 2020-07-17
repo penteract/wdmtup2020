@@ -14,6 +14,9 @@ import Data.Maybe
 import AST
 import Data
 
+helper :: [Statement] -> Map Opr Expr
+helper sts = M.fromList $ [ (a ^?! _Operator, b) | Equivalence a b <- sts]
+
 solve :: Opr -> Map Opr Expr -> Map Opr Value
 solve v m =
   let -- eval precond : v and all deps exps present in expr map
