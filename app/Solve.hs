@@ -23,25 +23,19 @@ solve v m =
       evaluate :: Expr -> State (Map Opr Value) Value
       evaluate = \case
         Ap f e -> do
-          f' <- (^?! _VFunction) <$> evaluate f
-          e' <- evaluate e
-          pure $ f' e'
-        List es -> foldrM (\a b -> VCons <$> evaluate a <*> pure b) VNil es
+          f <- evaluate f <&> (^?! _VFunction)
+          e <- evaluate e
+          pure $ f e
+        List es -> foldrM (\a b -> VCons <$> evaluate a ?? b) VNil es
         Operator op -> eval op
         Constant v -> pure $ VInt v
         Fn f -> pure $ predef f
    in flip execState M.empty $ eval v
 
-getDeps :: Expr -> [Opr]
-getDeps = \case
-  Ap e1 e2 -> getDeps e1 <> getDeps e2
-  List es -> concatMap getDeps es
-  Operator op -> pure op
-  Constant _ -> []
-  Fn _ -> []
-
 ----------------------
 -- * Test
 oprmap = M.fromList [(0, Constant 1), (2, List []), (3, Ap (Fn Inc) (Operator 0))]
+oprmap2 = oprmap <> M.fromList [(4, Fn Dec), (5, Ap (Operator 4) (Operator 3))]
 
 t = solve 3 oprmap
+t2 = solve 5 oprmap2

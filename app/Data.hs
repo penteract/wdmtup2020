@@ -9,7 +9,7 @@ makePrisms ''Value
 
 instance Show Value where
     show (VFunction x) = "Fun"
-    show (VInt n) = show n
+    show (VInt n) = "V" ++ show n
     show (VCons x y) = "("++show x++", "++show y++")"
     show VNil = "n"
     show VPicture = "picture"
