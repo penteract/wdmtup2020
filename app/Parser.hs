@@ -4,13 +4,14 @@ where
 import AST
 import System.IO.Unsafe
 import qualified Data.Map as M
+import Data.Char(toLower)
 
 parse :: String -> [Statement]
 parse s = (lines s >>= (maybe [] return . parseLine) )
 
 
 defStrings :: M.Map String Predef
-defStrings = M.fromList [ (show x, x) | x <- [minBound .. maxBound]]
+defStrings = M.fromList [ (map toLower (show x), x) | x <- [minBound .. maxBound]]
 
 type Token = String
 
@@ -38,7 +39,7 @@ toConst (':':rs) = Operator (read rs)
 toConst ('-':rs) = Constant (negate $ read rs)
 toConst (name@(c:rs)) = if c `elem` ['0'..'9'] then Constant (read (c:rs))
   else if M.member name defStrings then Fn (defStrings M.! name)
-    else error "unknown name"
+    else error ("unknown name: "++name)
 
 parseExpr :: [Token] -> Maybe (Expr, [Token])
 parseExpr ("ap":rs) = do
