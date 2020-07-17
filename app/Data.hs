@@ -7,6 +7,14 @@ import Control.Lens
 data Value = VFunction (Value -> Value) | VInt Integer | VCons Value Value | VNil | VPicture --I'll deal with actual pciture data later.
 makePrisms ''Value
 
+instance Eq Value where
+  (==) (VInt n) (VInt n2) = n == n2
+  (==) (VCons v v') (VCons w w') = v == w && v' == w'
+  (==) VNil VNil = True
+  (==) VNil _ = False
+  (==) _ VNil = False
+  (==) _a _b = error $ "Bad eq comparison value " <> show _a <> " " <> show _b
+
 instance Show Value where
     show (VFunction x) = "Fun"
     show (VInt n) = "V" ++ show n

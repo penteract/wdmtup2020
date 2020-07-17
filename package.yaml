@@ -25,6 +25,7 @@ dependencies:
 - utf8-string >= 1.0
 - lens
 - containers
+- extra
 - transformers
 
 # In a more realistic setting, you will probably want to write a library that

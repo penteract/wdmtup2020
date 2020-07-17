@@ -4,25 +4,47 @@
 module Solve where
 
 import Control.Lens hiding (List)
+import Control.Monad.Extra
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Data.Foldable
 import qualified Data.Map as M
 import Data.Map (Map)
 import Data.Maybe
+import Debug.Trace
 
 import AST
 import Data
 
+whenNothingM ma ma' = do
+  ma >>= \case
+    Just a -> pure a
+    Nothing -> ma'
+
 helper :: [Statement] -> Map Opr Expr
 helper sts = M.fromList $ [ (a ^?! _Operator, b) | Equivalence a b <- sts]
+
+solve' :: Opr -> Map Opr Expr -> Value
+solve' v m =
+  let evaluate :: Expr -> Value
+      evaluate =
+       \case
+         Ap f e -> (evaluate f ^?! _VFunction) (evaluate e)
+         List es -> foldr (VCons . evaluate) VNil es
+         Operator op -> eval op
+         Constant v -> VInt v
+         Fn f -> predef f
+      eval :: Opr -> Value
+      eval v = evaluate (m M.! v)
+   in eval v
 
 solve :: Opr -> Map Opr Expr -> Map Opr Value
 solve v m =
   let -- eval precond : v and all deps exps present in expr map
       eval :: Opr -> State (Map Opr Value) Value
       eval v =
-        (at v <?=) =<< evaluate (m ^?! ix v)
+        whenNothingM (use $ at v) $
+          (at v <?=) =<< (traceShowId <$> evaluate (m ^?! ix v))
       evaluate :: Expr -> State (Map Opr Value) Value
       evaluate = \case
         Ap f e -> do

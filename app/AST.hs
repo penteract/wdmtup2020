@@ -24,7 +24,8 @@ predef Dec = intUnary (+(-1))
 predef Add = intBinary (+)
 predef Mul = intBinary (*)
 predef Div = intBinary quot
-predef Eq = VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x == y)))  -- It's possible this will be used on things other than ints, but comparing lambda terms is uncomputable, and it would be awkward in practice.
+predef Eq = VFunction (\v -> VFunction (\v' -> boolValue (v == v')))
+-- VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x == y)))  -- It's possible this will be used on things other than ints, but comparing lambda terms is uncomputable, and it would be awkward in practice.
 predef Lt = VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x < y)))
 predef Mod = VFunction id -- It's not clear what the semantics of the squiggle literals is meant to be.
 predef Dem = VFunction id
@@ -61,10 +62,9 @@ intUnary f = VFunction (\(VInt n) -> VInt (f n))
 intBinary :: (Integer -> Integer -> Integer) -> Value
 intBinary f = VFunction (\(VInt n) -> intUnary (f n))
 
-apply = undefined
+apply :: Value -> Value -> Value
+apply (VFunction f) = f
 
-boolValue :: Bool -> Value
-boolValue True = predef T
 boolValue False = predef F
 
 vList :: [Value] -> Value
