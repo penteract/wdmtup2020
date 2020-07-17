@@ -29,7 +29,7 @@ parseLine l = let toks = tokenise l in
 
 isGood _ = True
 
-toConst (':':rs) = Variable (read rs)
+toConst (':':rs) = Operator (read rs)
 toConst ('-':rs) = Constant (negate $ read rs)
 toConst (name@(c:rs)) = if c `elem` ['0'..'9'] then Constant (read (c:rs))
   else if isGood name then Fn name else error "unknown name"
