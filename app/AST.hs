@@ -17,42 +17,46 @@ predef Dec = intUnary (+(-1))
 predef Add = intBinary (+)
 predef Mul = intBinary (*)
 predef Div = intBinary quot
-predef Eq = VFun (\(VInt x) -> VFun (\(VInt y) -> boolValue (x == y))  -- It's possible this will be used on things other than ints, but comparing lambda terms is uncomputable, and it would be awkward in practice.
-predef Lt = VFun (\(VInt x) -> VFun (\(VInt y) -> boolValue (x < y))
+predef Eq = VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x == y)))  -- It's possible this will be used on things other than ints, but comparing lambda terms is uncomputable, and it would be awkward in practice.
+predef Lt = VFunction (\(VInt x) -> VFunction (\(VInt y) -> boolValue (x < y)))
 predef Mod = id -- It's not clear what the semantics of the squiggle literals is meant to be.
 predef Dem = id
 predef Send = undefined
 predef Neg = intUnary negate
-predef S = VFun (\x -> VFun (\y -> VFun (\z -> apply (apply x z) (apply y z))))
-predef C = VFun (\x -> VFun (\y -> VFun (\z -> apply (apply x y) z)))
-predef B = VFun (\x -> VFun (\y -> VFun (\z -> apply x (apply y z))))
-predef T = VFun (\x -> VFun (\y -> x))
-predef F = VFun (\x -> VFun (\y -> y))
+predef S = VFunction (\x -> VFunction (\y -> VFunction (\z -> apply (apply x z) (apply y z))))
+predef C = VFunction (\x -> VFunction (\y -> VFunction (\z -> apply (apply x y) z)))
+predef B = VFunction (\x -> VFunction (\y -> VFunction (\z -> apply x (apply y z))))
+predef T = VFunction (\x -> VFunction (\y -> x))
+predef F = VFunction (\x -> VFunction (\y -> y))
 predef Pwr2 = intUnary (2^)
-predef I = VFun id
-predef Cons = VFun (\x -> VFun (\y -> VCons x y))
-predef Car = VFun (\(VCons x y) -> x)
-predef Cdr = VFun (\(VCons x y) -> y)
+predef I = VFunction id
+predef Cons = VFunction (\x -> VFunction (\y -> VCons x y))
+predef Car = VFunction (\(VCons x y) -> x)
+predef Cdr = VFunction (\(VCons x y) -> y)
 predef Nil = VNil
-predef Isnil = VFun (\x -> case x of {VNil -> boolValue True; _ -> boolValue False})
+predef Isnil = VFunction (\x -> case x of {VNil -> boolValue True; _ -> boolValue False})
 predef Vec = predef Cons
-predef Draw = VFun (\x -> VPicture)
-predef Checkerboard = VFun (\x -> VFun (\y -> VPicture))
-predef Multipledraw = VFun multipleDraw
+predef Draw = VFunction (\x -> VPicture)
+predef Checkerboard = VFunction (\x -> VFunction (\y -> VPicture))
+predef Multipledraw = VFunction multipleDraw
     where multipleDraw VNil = VNil
           multipleDraw (VCons x xs) = VCons VPicture (multipleDraw xs)
-predef If0 = VFun (\(VInt n) -> boolValue (n == 0))
+predef If0 = VFunction (\(VInt n) -> boolValue (n == 0))
 predef Interact = undefined
 predef Modem = id
 predef F38 = undefined
-predef Statelessdraw = VFun (\x -> VFun (\y -> vList [VInt 0, VNil, vList [ vList [y]]]))
-predef Statefuldraw = VFun (\x -> VFun (\y -> vList [VInt 0, VCons y x, vList [VCons y s]]))
+predef Statelessdraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VNil, vList [ vList [y]]]))
+predef Statefuldraw = undefined 
+  -- VFunction (\x -> VFunction (\y -> vList [VInt 0, VCons y x, vList [VCons y s]]))
 
 intUnary :: (Integer -> Integer) -> Value -> Value
-intUnary f = VFun (\(VInt n) -> VInt (f n))
+intUnary f = undefined 
+  -- VFunction (\(VInt n) -> VInt (f n))
 
 intBinary :: (Integer -> Integer -> Integer) -> Value -> Value
-intBinary f = VFum (\(VInt n) -> intUnary (f n))
+intBinary f = VFunction (\(VInt n) -> intUnary (f n))
+
+apply = undefined
 
 boolValue :: Bool -> Value
 boolValue True = predef T
