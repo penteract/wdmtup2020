@@ -10,35 +10,35 @@ instance Show Value where
     show VNil = "n"
     show VPicture = "picture"
 
-serialize :: Value -> [Bool]
-serialize (VCons x xs) = [True,True] ++ serialize x ++ serialize xs
-serialize (VNil) = [False,False]
-serialize (VInt n) = (if n >= 0 then [False, True] else [True, False]) ++ replicate nybbleLength True ++ [False] ++ replicate (nybbleLength * 4 - length bits) False ++ bits
+serialize :: Value -> String
+serialize (VCons x xs) = ['1','1'] ++ serialize x ++ serialize xs
+serialize (VNil) = ['0','0']
+serialize (VInt n) = (if n >= 0 then "01" else "10") ++ replicate nybbleLength '1' ++ "0" ++ replicate (nybbleLength * 4 - length bits) '0' ++ bits
     where bits = convertToBits (abs n)
           nybbleLength = div (length bits + 3) 4
 serialize _ = error "Serialization only available for integers, lists and nil"
 
-convertToBits :: Integer -> [Bool]
+convertToBits :: Integer -> String
 convertToBits n = reverse $ convertToBits' n
     where convertToBits' 0 = []
-          convertToBits' m = (mod m 2 /= 0) : convertToBits' (div m 2)
+          convertToBits' m = (if mod m 2 /= 0 then '1' else '0') : convertToBits' (div m 2)
 
-deserialize :: [Bool] -> Value
+deserialize :: String -> Value
 deserialize = snd . deserialize'
-    where deserialize' :: [Bool] -> ([Bool], Value)
-          deserialize' (False:False:xs) = (xs, VNil)
-          deserialize' (True:True:xs) = let {
+    where deserialize' :: String -> (String, Value)
+          deserialize' ('0':'0':xs) = (xs, VNil)
+          deserialize' ('1':'1':xs) = let {
                   (xs', v0) = deserialize' xs;
                   (xs'', v1) = deserialize' xs'
               } in (xs'', VCons v0 v1)
-          deserialize' (False:True:xs) = let {
-                  (lengthString, False:xs') = break not xs;
+          deserialize' ('0':'1':xs) = let {
+                  (lengthString, '0':xs') = break (=='0') xs;
                   (bits, xs'') = splitAt (length lengthString * 4) xs'
               } in (xs'', VInt (convertFromBits bits))
-          deserialize' (True:False:xs) = let {
-                  (lengthString, False:xs') = break not xs;
+          deserialize' ('1':'0':xs) = let {
+                  (lengthString, '0':xs') = break (=='0') xs;
                   (bits, xs'') = splitAt (length lengthString * 4) xs'
               } in (xs'', VInt (-convertFromBits bits))
 
-convertFromBits :: [Bool] -> Integer
-convertFromBits = foldl (\n b -> n*2 + if b then 1 else 0) 0
+convertFromBits :: String -> Integer
+convertFromBits = foldl (\n b -> n*2 + if b == '1' then 1 else 0) 0
