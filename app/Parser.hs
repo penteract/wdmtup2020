@@ -2,6 +2,7 @@ module Parser
 where
 
 import AST
+import System.IO.Unsafe
 
 parse :: String -> [Statement]
 parse s = (lines s >>= (maybe [] return . parseLine) )
@@ -11,7 +12,7 @@ type Token = String
 tokenise :: String -> [Token]
 tokenise [] = []
 tokenise (' ':rs) = tokenise rs
-tokenise (c:rs) = let (h,rs) = tokenise' [c] rs in h:tokenise rs
+tokenise (c:rs) = let (h,rs') = tokenise' [c] rs in (h:tokenise rs')
 
 tokenise' start [] = (reverse start,[])
 tokenise' start (' ':rs) = (reverse start, rs)

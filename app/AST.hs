@@ -1,6 +1,6 @@
 module AST where
 
-data Statement = Equivalence Expr Expr
+data Statement = Equivalence Expr Expr deriving (Show)
 
 type Var = Integer
 type Val = Integer
