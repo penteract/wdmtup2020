@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8e6877b7e769f4bf80cc97fd84751decc4e5877d17d149686c9f9970fb9a7873
+-- hash: a894914f18d63b992d99a9492d4eb17348e65434872609ed58655888cc620219
 
 name:           icfpc-mmxx-starterkit-haskell
 version:        0.0.0
@@ -16,7 +16,10 @@ build-type:     Simple
 executable main
   main-is: Main.hs
   other-modules:
+      AST
       Data
+      Parser
+      Solve
       Paths_icfpc_mmxx_starterkit_haskell
   hs-source-dirs:
       app
@@ -24,5 +27,8 @@ executable main
   build-depends:
       base >=4.7 && <5
     , http-conduit >=2.3
+    , lens
+    , containers
+    , transformers
     , utf8-string >=1.0
   default-language: Haskell2010
