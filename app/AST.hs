@@ -5,22 +5,55 @@ module AST where
 import Control.Lens
 import Data
 
-data Statement = Equivalence Expr Expr deriving Show
+data Statement = Equivalence Expr Expr deriving (Show)
 
 type Opr = Integer
+
 type Val = Integer
 
-data Predef = Inc | Dec | Add | Mul | Div | Eq | Lt | Mod | Dem | Send | Neg
-  | S | C | B | T | F | Pwr2 | I | Cons | Car | Cdr | Nil | Isnil | Vec | Draw
-  | Checkerboard | Multipledraw | If0 | Interact | Modem | F38 | Statelessdraw
-  | Statefuldraw deriving (Bounded, Enum, Show, Eq, Ord)
+data Predef
+  = Inc
+  | Dec
+  | Add
+  | Mul
+  | Div
+  | Eq
+  | Lt
+  | Mod
+  | Dem
+  | Send
+  | Neg
+  | S
+  | C
+  | B
+  | T
+  | F
+  | Pwr2
+  | I
+  | Cons
+  | Car
+  | Cdr
+  | Nil
+  | Isnil
+  | Vec
+  | Draw
+  | Checkerboard
+  | Multipledraw
+  | If0
+  | Interact
+  | Modem
+  | F38
+  | Statelessdraw
+  | Statefuldraw
+  deriving (Bounded, Enum, Show, Eq, Ord)
 
 data Expr = Ap Expr Expr | List [Expr] | Operator Opr | Constant Val | Fn Predef deriving (Show)
+
 makePrisms ''Expr
 
 predef :: Predef -> Value
-predef Inc = intUnary (+1)
-predef Dec = intUnary (+(-1))
+predef Inc = intUnary (+ 1)
+predef Dec = intUnary (+ (-1))
 predef Add = intBinary (+)
 predef Mul = intBinary (*)
 predef Div = intBinary quot
@@ -36,24 +69,25 @@ predef C = VFunction (\x -> VFunction (\y -> VFunction (\z -> apply (apply x y) 
 predef B = VFunction (\x -> VFunction (\y -> VFunction (\z -> apply x (apply y z))))
 predef T = VFunction (\x -> VFunction (\y -> x))
 predef F = VFunction (\x -> VFunction (\y -> y))
-predef Pwr2 = intUnary (2^)
+predef Pwr2 = intUnary (2 ^)
 predef I = VFunction id
 predef Cons = VFunction (\x -> VFunction (\y -> VCons x y))
 predef Car = VFunction (\(VCons x y) -> x)
 predef Cdr = VFunction (\(VCons x y) -> y)
 predef Nil = VNil
-predef Isnil = VFunction (\x -> case x of {VNil -> boolValue True; _ -> boolValue False})
+predef Isnil = VFunction (\x -> case x of VNil -> boolValue True; _ -> boolValue False)
 predef Vec = predef Cons
 predef Draw = VFunction (\x -> VPicture)
 predef Checkerboard = VFunction (\x -> VFunction (\y -> VPicture))
 predef Multipledraw = VFunction multipleDraw
-    where multipleDraw VNil = VNil
-          multipleDraw (VCons x xs) = VCons VPicture (multipleDraw xs)
+  where
+    multipleDraw VNil = VNil
+    multipleDraw (VCons x xs) = VCons VPicture (multipleDraw xs)
 predef If0 = VFunction (\(VInt n) -> boolValue (n == 0))
 predef Interact = undefined
 predef Modem = VFunction id
 predef F38 = undefined
-predef Statelessdraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VNil, vList [ vList [y]]]))
+predef Statelessdraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VNil, vList [vList [y]]]))
 predef Statefuldraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VCons y x, vList [VCons y x]]))
 
 intUnary :: (Integer -> Integer) -> Value
