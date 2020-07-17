@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/root/.local/bin/main "$@" || echo "run error code: $?"
+$(stack path --local-install-root)/bin/main "$@" || echo "run error code: $?"
