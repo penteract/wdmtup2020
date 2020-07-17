@@ -3,12 +3,12 @@ where
 
 import AST
 import System.IO.Unsafe
-import qualified Data.Map as M
 import Data.Char(toLower)
+import qualified Data.Map as M
+import Data.Maybe
 
 parse :: String -> [Statement]
-parse s = (init ({lines s}) >>= (maybe [] return . parseLine) )
-
+parse = mapMaybe parseLine . init . lines
 
 defStrings :: M.Map String Predef
 defStrings = M.fromList [ (map toLower (show x), x) | x <- [minBound .. maxBound]]
