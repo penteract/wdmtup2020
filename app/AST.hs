@@ -9,7 +9,10 @@ type Val = Integer
 
 data Expr = Ap Expr Expr | List [Expr] | Operator Opr | Constant Val | Fn Predef deriving (Show)
 
-data Predef = Inc | Dec | Add | Mul | Div | Eq | Lt | Mod | Dem | Send | Neg | S | C | B | T | F | Pwr2 | I | Cons | Car | Cdr | Nil | Isnil | Vec | Draw | Checkerboard | Multipledraw | If0 | Interact | Modem | F38 | Statelessdraw | Statefuldraw deriving (Show)
+data Predef = Inc | Dec | Add | Mul | Div | Eq | Lt | Mod | Dem | Send | Neg
+  | S | C | B | T | F | Pwr2 | I | Cons | Car | Cdr | Nil | Isnil | Vec | Draw
+  | Checkerboard | Multipledraw | If0 | Interact | Modem | F38 | Statelessdraw
+  | Statefuldraw deriving (Bounded, Enum, Show, Eq, Ord)
 
 predef :: Predef -> Value
 predef Inc = intUnary (+1)
