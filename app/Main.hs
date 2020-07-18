@@ -2,9 +2,9 @@
 
 import Control.Exception
 import qualified Data.ByteString.Lazy.UTF8 as BLU
+import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as S
-
 import Control.Applicative
 import Control.Exception
 import Data.Bifunctor
@@ -38,14 +38,16 @@ iterPoint usePy pipes f (s:ss) p = do
 type Point = (Integer,Integer)
 
 ui :: (Handle, Handle) -> Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
-ui pipes p@(x,y) s@((_,dat):_) f = do
+ui pipes p@(x,y) s@((st,dat):_) f = do
   print (x,y)
   -- putStr (draw p dat)
+  print st
+  print (pp st)
   putStrLn "(q)uit, (o)utput, (l)oad"
   putStr "awaiting input (type 1 character (wasd (p)rint (r)un p(y)thon (b)ack) then press enter): "
   hFlush stdout
-  inp <- getChar
-  case inp of
+  inp <- getLine
+  case head inp of
     'w' -> ui pipes (x,y - 1) s f
     's' -> ui pipes (x,y + 1) s f
     'a' -> ui pipes (x - 1,y) s f
@@ -56,6 +58,14 @@ ui pipes p@(x,y) s@((_,dat):_) f = do
     'b' -> ui pipes p (tail s) f
     'o' -> output p s *> ui pipes p s f
     'l' -> load >>= flip (uncurry (ui pipes)) f
+    'e' -> do
+      case parseJustExpr (tail inp) of
+        Just e -> do
+           let v = solve' 0 (M.singleton 0 e)
+           --f False ((v,VNil):s) (0,0)
+           ui p ((v,VNil):s) f
+           -- ui p _ f
+        Nothing -> print "faild parse" >> ui pipes p s f
 
 output :: Point -> History -> IO ()
 output p s = do
