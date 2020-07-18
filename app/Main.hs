@@ -1,10 +1,13 @@
 import Control.Exception
-import Data.ByteString.Lazy.UTF8 as BLU
+import qualified Data.ByteString.Lazy.UTF8 as BLU
 import Network.HTTP.Simple
 import System.Environment
 import GHC.IO
 import System.IO
+import Control.Applicative
+import System.Process
 
+import Text.Read
 import Data
 import Parser
 import Solve
@@ -35,6 +38,19 @@ ui dat p@(x,y) f = do
     'd' -> ui dat (x+1,y) f
     'p' -> putStr (draw p dat) >> ui dat p f
     'r' -> f p
+    'y' -> runPython dat p f
+
+readPoint :: String -> Maybe Point
+readPoint s = let (a,(' ':b)) = break (== ' ') s in
+    liftA2 (,) (readMaybe a) (readMaybe b)
+
+runPython :: Value -> Point -> (Point -> IO ()) -> IO ()
+runPython dat p f = do
+  pt <- readProcess "python3" ["gridselect.py"] (unlines (listify3 dat))
+  case readPoint pt of
+    Just p -> f p
+    Nothing -> putStrLn "Bad Python output" >> ui dat p f
+
 
 main =
   catch
