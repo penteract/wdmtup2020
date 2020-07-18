@@ -4,6 +4,7 @@
 module Solve where
 
 import AST
+import Builtins
 import Control.Lens hiding (List)
 import Control.Monad.Extra
 import Control.Monad.Trans.Reader
