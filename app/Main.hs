@@ -56,9 +56,13 @@ readPoint s = case break (== ' ') s of
 runPython :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 runPython p s@((_,dat):_) f = do
   pt <- readProcess "python3" ["gridselect.py"] (unlines $ reverse (listify3 dat))
-  case readPoint pt of
-    Just p -> f True s p
-    Nothing -> putStrLn "Bad Python output" >> ui p s f
+  case pt of
+    [] -> ui p s f
+    'b':_ -> runPython p (tail s) f
+    'g':_ -> f True [(defaultAddress,VNil)] p
+    _ -> case readPoint pt of
+      Just p -> f True s p
+      Nothing -> putStrLn ("Bad Python output: "++pt) >> ui p s f
 
 defaultAddress :: Value
 defaultAddress = deserialize "11011000011111011010110011010110000"
@@ -75,7 +79,7 @@ main =
         let inp = if Prelude.length args == 2
                         then mkPair (read$ args!! 0) (read $ (args !! 1))
                         else (VCons (VInt 0) (VInt 0))
-        iterPoint False f [(defaultAddress,VNil)] inp
+        iterPoint True f [(defaultAddress,VNil)] inp
 
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))

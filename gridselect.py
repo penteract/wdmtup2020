@@ -64,7 +64,7 @@ class CellGrid(Canvas):
           line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))    
         self.grid.append(line)
     
-      self.bind("<Button-1>", self.handleMouseClick)  
+      self.bind("<Button-1>", self.handleMouseClick)
     
       self.draw()
     
@@ -84,8 +84,15 @@ class CellGrid(Canvas):
       row, column = self._eventCoords(event)
       print(column, row)
       exit()
-      
-      
+
+def backCommand():
+  print('b')
+  exit()
+
+def resetCommand():
+  print('g')
+  exit()
+
 if __name__ == "__main__" :
     app = Tk()
 
@@ -102,6 +109,11 @@ if __name__ == "__main__" :
     xscrollbar.pack( side = BOTTOM, fill = X )
     yscrollbar = Scrollbar(app)
     yscrollbar.pack( side = RIGHT, fill = Y )
+    
+    backButton = Button(app, text="Back", command = backCommand)
+    backButton.pack(side = TOP)
+    galaxyButton = Button(app, text="Reset", command = resetCommand)
+    galaxyButton.pack(side = TOP)
 
     grid = CellGrid(app, xmin, xmax, ymin, ymax, max(7,400/(xmax-xmin+ymax-ymin)), xscrollbar, yscrollbar)
     grid.pack()
