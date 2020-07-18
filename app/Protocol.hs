@@ -2,6 +2,7 @@
 
 module Protocol where
 
+import Control.Arrow
 import Data.Bifunctor
 import Data.List.Extra
 import qualified Data.Map as M
@@ -17,19 +18,17 @@ detectCross' :: Value -> Maybe (Integer, Integer)
 detectCross' = (\[c] -> detectCross . map (\(VCons (VInt x) (VInt y)) -> (x,y)) $ toList c) . toList
 
 detectCross :: [(Integer, Integer)] -> Maybe (Integer, Integer)
-detectCross ps = if null ps then Nothing else
-  let cand_x = mode $ map fst ps
-      cand_y = mode $ map snd ps
+detectCross ps@(unzip -> (xs,ys)) = if null ps then Nothing else
+  let cand_x = mode xs
+      cand_y = mode ys
       all_ok = all (uncurry (||) . bimap (cand_x ==) (cand_y ==)) ps
       mode = fst . head . sortOn snd . M.toList . foldMap (flip M.singleton $ Sum 1) 
    in if all_ok then Just (cand_x, cand_y) else Nothing
 
 draw1 :: [(Integer,Integer)] -> String
-draw1 ps@(unzip -> (xs,ys)) = if null xs then "blank" else let
-  xmin = minimum xs
-  xmax = maximum xs
-  ymin = minimum ys
-  ymax = maximum ys
+draw1 ps@(unzip -> (xs,ys)) = if null ps then "blank" else let
+  (xmin, xmax) = (minimum &&& maximum) xs
+  (ymin, ymax) = (minimum &&& maximum) ys
   srted = map (((,) =<< snd.head) . sortOn fst) $ groupSortOn snd ps
   goFrom :: Integer -> Integer -> b -> (a -> b) -> [(Integer, a)] -> [b]
   goFrom mn mx blank fn [] = replicate (fromIntegral $ mx - mn) blank
