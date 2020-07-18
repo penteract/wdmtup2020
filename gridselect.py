@@ -103,7 +103,7 @@ if __name__ == "__main__" :
     yscrollbar = Scrollbar(app)
     yscrollbar.pack( side = RIGHT, fill = Y )
 
-    grid = CellGrid(app, xmin, xmax, ymin, ymax, 7, xscrollbar, yscrollbar)
+    grid = CellGrid(app, xmin, xmax, ymin, ymax, max(7,400/(xmax-xmin+ymax-ymin)), xscrollbar, yscrollbar)
     grid.pack()
 
     app.mainloop()
