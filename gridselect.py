@@ -46,12 +46,14 @@ class Cell():
         self.master.create_rectangle(xmin, ymin, xmax, ymax, fill = self.fill, outline = outline)
   
 class CellGrid(Canvas):
-    def __init__(self, master, xmin, xmax, ymin, ymax, cellSize, *args, **kwargs):
+    def __init__(self, master, xmin, xmax, ymin, ymax, cellSize, xscrollbar, yscrollbar, *args, **kwargs):
       self.xmin = xmin
       self.ymin = ymin
       cellsHigh = ymax - ymin + 1
       cellsWide = xmax - xmin + 1
-      Canvas.__init__(self, master, width = cellSize * cellsWide , height = cellSize * cellsHigh, *args, **kwargs)
+      Canvas.__init__(self, master, width = cellSize * cellsWide , height = cellSize * cellsHigh, xscrollcommand = xscrollbar.set, yscrollcommand = yscrollbar.set, *args, **kwargs)
+      xscrollbar.config( command = self.xview )
+      yscrollbar.config( command = self.yview )
     
       self.cellSize = cellSize
     
@@ -96,7 +98,12 @@ if __name__ == "__main__" :
       ymin, ymax = min(y,ymin), max(y,ymax)
       colourMap[(x,y)] = z
   
-    grid = CellGrid(app, xmin, xmax, ymin, ymax, 10)
+    xscrollbar = Scrollbar(app , orient = HORIZONTAL)
+    xscrollbar.pack( side = BOTTOM, fill = X )
+    yscrollbar = Scrollbar(app)
+    yscrollbar.pack( side = RIGHT, fill = Y )
+
+    grid = CellGrid(app, xmin, xmax, ymin, ymax, 7, xscrollbar, yscrollbar)
     grid.pack()
-  
+
     app.mainloop()
