@@ -37,6 +37,22 @@ draw1 xmin xmax ymin ymax ps = unlines $ map (\y ->
     map (flip (M.findWithDefault ' ') ps . (,y)) [xmin .. xmax]
   ) [ymin .. ymax]
 
+selectMiddle :: [(Integer, Integer)] -> [(Integer, Integer)]
+selectMiddle ps@(unzip ->(xs,ys)) =
+  let threshold = 0.05
+      (xmin, xmax) = (minimum &&& maximum) xs
+      xrange = xmax - xmin
+      xmid = fromIntegral xrange / 2
+      xthresh = threshold * fromIntegral xrange
+      (xlo, xhi) = (xmid - xthresh, xmid + xthresh)
+      (ymin, ymax) = (minimum &&& maximum) ys
+      yrange = ymax - ymin
+      ymid = fromIntegral yrange / 2
+      ythresh = threshold * fromIntegral yrange
+      (ylo, yhi) = (ymid - ythresh, ymid + ythresh)
+      inBounds (fromIntegral -> x, fromIntegral -> y) 
+        = xlo <= x && x <= xhi && ylo <= y && y <= yhi
+   in filter inBounds ps
 
 drawh :: [[(Integer,Integer)]] -> String
 drawh xs = unlines $ show (xmin, ymin) : map (draw1 xmin xmax ymin ymax) pointMaps
