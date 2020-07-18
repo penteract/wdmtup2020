@@ -61,7 +61,7 @@ selectMiddle ps@(unzip ->(xs,ys)) =
       ymid = fromIntegral yrange / 2
       ythresh = threshold * fromIntegral yrange
       (ylo, yhi) = (ymid - ythresh, ymid + ythresh)
-      inBounds (fromIntegral -> x, fromIntegral -> y) 
+      inBounds (fromIntegral -> x, fromIntegral -> y)
         = xlo <= x && x <= xhi && ylo <= y && y <= yhi
    in filter inBounds ps
 
@@ -91,11 +91,12 @@ alienInteract f state vec = do
     putStrLn "Terminate Interaction"
     print newState
     print (serialize newState)
-    putStrLn (draw (0,0) dat)
+    --putStrLn (draw (0,0) dat)
     return (newState,dat)
   else do
     putStrLn "Continue Interaction"
     print newState
+    print (serialize newState)
     resp <- send dat
     alienInteract f newState resp
 

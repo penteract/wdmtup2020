@@ -19,7 +19,11 @@ sendTo url v = do
       "200" -> do
          let s = BLU.toString (getResponseBody response)
          putStrLn ("Server response: " ++ s)
-         return (deserialize s)
+         let val = deserialize s
+         print val
+         putStrLn "We Contacted The Server. please take note (tell the others!!!) then press enter:"
+         _ <- getLine
+         return val
       _ -> error ("Unexpected server response:\nHTTP code: " ++ statuscode ++ "\nResponse body: " ++ BLU.toString (getResponseBody response))
 
 send = sendTo "https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=7897f34898d14e438f654b62eb7f8673"

@@ -9,7 +9,7 @@ colourdict = \
   , '4' : "blue"
   , '5' : "cyan"
   , '6' : "yellow"
-  , '7' : "magenta" 
+  , '7' : "magenta"
   }
 
 def getColour(c='0'):
@@ -32,19 +32,19 @@ class Cell():
      self.ord = y
      self.size= size
      self.fill= colour
-    
+
   def draw(self):
       """ order to the cell to draw its representation on the canvas """
       if self.master != None :
         outline = Cell.FILLED_COLOR_BORDER if self.fill else Cell.EMPTY_COLOR_BORDER
-    
+
         xmin = self.abs * self.size
         xmax = xmin + self.size
         ymin = self.ord * self.size
         ymax = ymin + self.size
-      
+
         self.master.create_rectangle(xmin, ymin, xmax, ymax, fill = self.fill, outline = outline)
-  
+
 class CellGrid(Canvas):
     def __init__(self, master, xmin, xmax, ymin, ymax, cellSize, xscrollbar, yscrollbar, *args, **kwargs):
       self.xmin = xmin
@@ -54,32 +54,32 @@ class CellGrid(Canvas):
       Canvas.__init__(self, master, width = cellSize * cellsWide , height = cellSize * cellsHigh, xscrollcommand = xscrollbar.set, yscrollcommand = yscrollbar.set, *args, **kwargs)
       xscrollbar.config( command = self.xview )
       yscrollbar.config( command = self.yview )
-    
+
       self.cellSize = cellSize
-    
+
       self.grid = []
       for row in range(ymin,ymax+1):
         line = []
         for column in range(xmin,xmax+1):
-          line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))    
+          line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))
         self.grid.append(line)
-    
+
       self.bind("<Button-1>", self.handleMouseClick)
-    
+
       self.draw()
-    
-    
-      
+
+
+
     def draw(self):
       for row in self.grid:
         for cell in row:
           cell.draw()
-        
+
     def _eventCoords(self, event):
       row = int(event.y / self.cellSize) + self.ymin
       column = int(event.x / self.cellSize) + self.xmin
       return row, column
-        
+
     def handleMouseClick(self, event):
       row, column = self._eventCoords(event)
       print(column, row)
@@ -104,18 +104,20 @@ if __name__ == "__main__" :
       xmin, xmax = min(x,xmin), max(x,xmax)
       ymin, ymax = min(y,ymin), max(y,ymax)
       colourMap[(x,y)] = z
-  
+
     xscrollbar = Scrollbar(app , orient = HORIZONTAL)
     xscrollbar.pack( side = BOTTOM, fill = X )
     yscrollbar = Scrollbar(app)
     yscrollbar.pack( side = RIGHT, fill = Y )
-    
-    backButton = Button(app, text="Back", command = backCommand)
+
+    f = Frame(app)
+    f.pack(side=LEFT)
+    backButton = Button(f, text="Back", command = backCommand)
     backButton.pack(side = TOP)
-    galaxyButton = Button(app, text="Reset", command = resetCommand)
+    galaxyButton = Button(f, text="Reset", command = resetCommand)
     galaxyButton.pack(side = TOP)
 
-    grid = CellGrid(app, xmin, xmax, ymin, ymax, max(7,400/(xmax-xmin+ymax-ymin)), xscrollbar, yscrollbar)
+    grid = CellGrid(app, xmin, xmax, ymin, ymax, max(1,min(int(1800/(xmax-xmin)),int(1000/(ymax-ymin)))), xscrollbar, yscrollbar)
     grid.pack()
 
     app.mainloop()
