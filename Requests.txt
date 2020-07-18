@@ -1,6 +1,6 @@
 normal interaction (selecting the )
-[V5, [V1, V0, [], [], [], [], [], V50430], V8, []]
-[V1, V50429]
+Request: [V5, [V1, V0, [], [], [], [], [], V50430], V8, []]
+Response: [V1, V50429]
 
 
 Start game (sequence of 3 messages before displaying anything):
