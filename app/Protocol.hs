@@ -1,6 +1,8 @@
+{-# LANGUAGE ViewPatterns #-}
+
 module Protocol where
 
-import Control.Arrow
+import Data.Bifunctor
 import Data.List.Extra
 import qualified Data.Map as M
 import Data.Monoid
@@ -18,20 +20,20 @@ detectCross :: [(Integer, Integer)] -> Maybe (Integer, Integer)
 detectCross ps = if null ps then Nothing else
   let cand_x = mode $ map fst ps
       cand_y = mode $ map snd ps
-      all_ok = all ((||) <$> (cand_x ==) . fst <*> (cand_y ==) . snd) ps
+      all_ok = all (uncurry (||) . bimap (cand_x ==) (cand_y ==)) ps
       mode = fst . head . sortOn snd . M.toList . foldMap (flip M.singleton $ Sum 1)
    in if all_ok then Just (cand_x, cand_y) else Nothing
 
 draw1 :: [(Integer,Integer)] -> String
-draw1 xs = if null xs then "blank" else let
-  xmin = fromIntegral $ foldr1 min (map fst xs)
-  xmax = fromIntegral $ foldr1 max (map fst xs)
-  ymin = fromIntegral $ foldr1 min (map snd xs)
-  ymax = fromIntegral $ foldr1 max (map snd xs)
-  srted = map ((snd.head &&& id) . sortOn fst) (groupSortOn snd xs)
-  goFrom :: Integer -> Integer -> b -> (a -> b) -> [(Integer,a)] -> [b]
-  goFrom mn mx blank fn [] = replicate (fromIntegral$ mx - mn) blank
-  goFrom mn mx blank fn ((y,l):rs) = replicate (fromIntegral$ y - mn) blank ++ (fn l:
+draw1 ps@(unzip -> (xs,ys)) = if null xs then "blank" else let
+  xmin = minimum xs
+  xmax = maximum xs
+  ymin = minimum ys
+  ymax = maximum ys
+  srted = map (((,) =<< snd.head) . sortOn fst) $ groupSortOn snd ps
+  goFrom :: Integer -> Integer -> b -> (a -> b) -> [(Integer, a)] -> [b]
+  goFrom mn mx blank fn [] = replicate (fromIntegral $ mx - mn) blank
+  goFrom mn mx blank fn ((y,l):rs) = replicate (fromIntegral $ y - mn) blank ++ (fn l:
     goFrom (y+1) mx blank fn rs)
   strify = goFrom xmin (xmax+1) ' ' (const '#')
   in show (xmin,ymin)<>"\n"<>unlines( (map ( strify)) (goFrom ymin (ymax+1) [] id srted))
