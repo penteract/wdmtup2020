@@ -16,6 +16,7 @@ def getColour(c='0'):
   return colourdict.get(c, colourdict['0'])
 
 colourMap = dict()
+annotations = []
 
 def get_colour(x, y):
   z = colourMap.get((x,y), None)
@@ -65,7 +66,8 @@ class CellGrid(Canvas):
         self.grid.append(line)
 
       self.bind("<Button-1>", self.handleMouseClick)
-
+      self.bind("<Motion>", self.drawAnnotation)
+      
       self.draw()
 
 
@@ -84,6 +86,17 @@ class CellGrid(Canvas):
       row, column = self._eventCoords(event)
       print(column, row)
       exit()
+    
+    def drawAnnotation(self, event):
+      row, column = self._eventCoords(event)
+      for [x,y,w,h,s] in annotations:
+        if x <= column and x+w > column and y <= row and y+h > row:
+          #self.create_text(event.x, event.y, text=s)
+          #print(s, file=sys.stderr)
+          numberOutput.set(s)
+          break
+      else:
+        numberOutput.set("")
 
 def backCommand():
   print('b')
@@ -99,12 +112,17 @@ if __name__ == "__main__" :
     xmin = ymin = float('inf')
     xmax = ymax = float('-inf')
     for line in sys.stdin:
-      x,y,z = line.strip().split()
-      x,y = int(x), int(y)
-      xmin, xmax = min(x,xmin), max(x,xmax)
-      ymin, ymax = min(y,ymin), max(y,ymax)
-      colourMap[(x,y)] = z
-
+      xs = line.strip().split()
+      if len(xs) == 5:
+        x,y,w,h,s = xs
+        annotations.append([int(x), int(y), int(w), int(h), s])
+      else:
+        x,y,z = xs
+        x,y = int(x), int(y)
+        xmin, xmax = min(x,xmin), max(x,xmax)
+        ymin, ymax = min(y,ymin), max(y,ymax)
+        colourMap[(x,y)] = z
+    
     xscrollbar = Scrollbar(app , orient = HORIZONTAL)
     xscrollbar.pack( side = BOTTOM, fill = X )
     yscrollbar = Scrollbar(app)
@@ -116,6 +134,8 @@ if __name__ == "__main__" :
     backButton.pack(side = TOP)
     galaxyButton = Button(f, text="Reset", command = resetCommand)
     galaxyButton.pack(side = TOP)
+    numberOutput = StringVar()
+    Label(app, textvariable=numberOutput).pack(side = TOP)
 
     grid = CellGrid(app, xmin, xmax, ymin, ymax, max(1,min(int(1800/(xmax-xmin)),int(1000/(ymax-ymin)))), xscrollbar, yscrollbar)
     grid.pack()
