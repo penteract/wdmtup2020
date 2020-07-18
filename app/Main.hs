@@ -13,8 +13,10 @@ mkPair x y = VCons (VInt $ x) (VInt $ y)
 
 iterPoint f s p = do
   (ns, dat) <- loop39 f s p
+  print dat
   let (Just (x,y)) = detectCross' dat
-  iterPoint f s (mkPair x y)
+  print (x,y)
+  iterPoint f ns (mkPair x y)
 
 main =
   catch
