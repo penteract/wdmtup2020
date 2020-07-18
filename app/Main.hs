@@ -55,7 +55,7 @@ readPoint s = case break (== ' ') s of
 
 runPython :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 runPython p s@((_,dat):_) f = do
-  pt <- readProcess "python3" ["gridselect.py"] (unlines.reverse (listify3 dat))
+  pt <- readProcess "python3" ["gridselect.py"] (unlines $ reverse (listify3 dat))
   case readPoint pt of
     Just p -> f True s p
     Nothing -> putStrLn "Bad Python output" >> ui p s f
