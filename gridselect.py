@@ -17,6 +17,7 @@ def getColour(c='0'):
 
 colourMap = dict()
 annotations = []
+grid = None
 
 def get_colour(x, y):
   z = colourMap.get((x,y), None)
@@ -84,36 +85,40 @@ class CellGrid(Canvas):
 
     def handleMouseClick(self, event):
       row, column = self._eventCoords(event)
-      print(column, row)
-      exit()
+      print(column, row, flush=True)
+      refresh()
     
     def drawAnnotation(self, event):
       row, column = self._eventCoords(event)
       for [x,y,w,h,s] in annotations:
         if x <= column and x+w > column and y <= row and y+h > row:
           #self.create_text(event.x, event.y, text=s)
-          #print(s, file=sys.stderr)
+          #print(s, file=sys.stderr, flush=True)
           numberOutput.set(s)
           break
       else:
         numberOutput.set("")
 
-def backCommand():
-  print('b')
-  exit()
+def command(text):
+  def cmd():
+    print(text, flush=True)
+    refresh()
+  return cmd
 
-def resetCommand():
-  print('g')
-  exit()
-
-if __name__ == "__main__" :
-    app = Tk()
-
+def refresh():
+    global annotations
+    global colourMap
+    global grid
+    annotations = []
+    colourMap = dict()
     xmin = ymin = float('inf')
     xmax = ymax = float('-inf')
     for line in sys.stdin:
+      print(line+"x", file=sys.stderr)
       xs = line.strip().split()
-      if len(xs) == 5:
+      if len(xs) == 0:
+        break
+      elif len(xs) == 5:
         x,y,w,h,s = xs
         annotations.append([int(x), int(y), int(w), int(h), s])
       else:
@@ -123,6 +128,20 @@ if __name__ == "__main__" :
         ymin, ymax = min(y,ymin), max(y,ymax)
         colourMap[(x,y)] = z
     
+    if xmin == float('inf'): #There are no points
+      print("No data received in UI process. Terminating.")
+      exit()
+
+    oldGrid = grid
+    grid = CellGrid(app, xmin, xmax, ymin, ymax, max(1,min(int(1800/(xmax-xmin)),int(1000/(ymax-ymin)))), xscrollbar, yscrollbar)
+    if oldGrid:
+      oldGrid.destroy()
+    grid.pack()
+
+
+if __name__ == "__main__" :
+    app = Tk()
+    
     xscrollbar = Scrollbar(app , orient = HORIZONTAL)
     xscrollbar.pack( side = BOTTOM, fill = X )
     yscrollbar = Scrollbar(app)
@@ -130,14 +149,12 @@ if __name__ == "__main__" :
 
     f = Frame(app)
     f.pack(side=LEFT)
-    backButton = Button(f, text="Back", command = backCommand)
-    backButton.pack(side = TOP)
-    galaxyButton = Button(f, text="Reset", command = resetCommand)
-    galaxyButton.pack(side = TOP)
+    Button(f, text="Back", command = command("b")).pack(side = TOP)
+    Button(f, text="Reset", command = command("g")).pack(side = TOP)
+    Button(f, text="Text UI", command = command("t")).pack(side = TOP)
     numberOutput = StringVar()
     Label(app, textvariable=numberOutput).pack(side = TOP)
-
-    grid = CellGrid(app, xmin, xmax, ymin, ymax, max(1,min(int(1800/(xmax-xmin)),int(1000/(ymax-ymin)))), xscrollbar, yscrollbar)
-    grid.pack()
+    
+    refresh()
 
     app.mainloop()

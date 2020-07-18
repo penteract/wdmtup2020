@@ -26,19 +26,19 @@ mkPair x y = VCons (VInt $ x) (VInt $ y)
 -- The state, then the list of images.
 type History = [(Value, Value)]
 
-iterPoint :: Bool -> (Value -> Value) -> History -> Value -> IO ()
-iterPoint usePy f (s:ss) p = do
+iterPoint :: Bool -> (Handle, Handle) -> (Value -> Value) -> History -> Value -> IO ()
+iterPoint usePy pipes f (s:ss) p = do
   (ns, dat) <- alienInteract f (fst s) p
   -- print dat
   let (Just (x,y)) = detectCross' dat
   let nss = if s == (ns,dat) then (s:ss) else ((ns,dat):s:ss)
   print (x,y)
-  (if usePy then runPython else ui) (x,y) nss (\up ss' p -> iterPoint up f ss' (uncurry mkPair p))
+  (if usePy then runPython else ui) pipes (x,y) nss (\up ss' p -> iterPoint up pipes f ss' (uncurry mkPair p))
 
 type Point = (Integer,Integer)
 
-ui :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
-ui p@(x,y) s@((_,dat):_) f = do
+ui :: (Handle, Handle) -> Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
+ui pipes p@(x,y) s@((_,dat):_) f = do
   print (x,y)
   -- putStr (draw p dat)
   putStrLn "(q)uit, (o)utput, (l)oad"
@@ -46,16 +46,16 @@ ui p@(x,y) s@((_,dat):_) f = do
   hFlush stdout
   inp <- getChar
   case inp of
-    'w' -> ui (x,y - 1) s f
-    's' -> ui (x,y + 1) s f
-    'a' -> ui (x - 1,y) s f
-    'd' -> ui (x + 1,y) s f
-    'p' -> ui p s f
+    'w' -> ui pipes (x,y - 1) s f
+    's' -> ui pipes (x,y + 1) s f
+    'a' -> ui pipes (x - 1,y) s f
+    'd' -> ui pipes (x + 1,y) s f
+    'p' -> ui pipes p s f
     'r' -> f False s p
-    'y' -> runPython p s f
-    'b' -> ui p (tail s) f
-    'o' -> output p s *> ui p s f
-    'l' -> load >>= flip (uncurry ui) f
+    'y' -> runPython pipes p s f
+    'b' -> ui pipes p (tail s) f
+    'o' -> output p s *> ui pipes p s f
+    'l' -> load >>= flip (uncurry (ui pipes)) f
 
 output :: Point -> History -> IO ()
 output p s = do
@@ -74,16 +74,19 @@ readPoint s = case break (== ' ') s of
       (a,(' ':b)) -> liftA2 (,) (readMaybe a) (readMaybe b)
       _ -> Nothing
 
-runPython :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
-runPython p s@((_,dat):_) f = do
-  pt <- readProcess "python3" ["gridselect.py"] (unlines $ annotations dat ++ reverse (listify3 dat))
+runPython :: (Handle, Handle) -> Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
+runPython pipes@(outPipe, inPipe) p s@((_,dat):_) f = do
+  hPutStrLn outPipe $ unlines $ annotations dat ++ reverse (listify3 dat)
+  hFlush outPipe
+  pt <- hGetLine inPipe
   case pt of
-    [] -> ui p s f
-    'b':_ -> runPython p (tail s) f
+    [] -> ui pipes p s f
+    'b':_ -> runPython pipes p (tail s) f
     'g':_ -> f True [(defaultAddress,VNil)] p
+    't':_ -> ui pipes p s f
     _ -> case readPoint pt of
       Just p -> f True s p
-      Nothing -> putStrLn ("Bad Python output: "++pt) >> ui p s f
+      Nothing -> putStrLn ("Bad Python output: "++pt) >> ui pipes p s f
 
 defaultAddress, galaxyAddress, ticTacToeEndAddress :: Value
 defaultAddress = galaxyAddress
@@ -102,7 +105,24 @@ main =
         let inp = if Prelude.length args == 2
                         then mkPair (read$ args!! 0) (read $ (args !! 1))
                         else (VCons (VInt 0) (VInt 0))
-        iterPoint True f [(defaultAddress,VNil)] inp
+        (Just outputPipe, Just inputPipe, _, _) <- createProcess (CreateProcess{
+            cmdspec=RawCommand "python3" ["gridselect.py"],
+            cwd = Nothing,
+            env = Nothing,
+            std_in = CreatePipe,
+            std_out = CreatePipe,
+            std_err = Inherit,
+            close_fds = False,
+            create_group = False,
+            delegate_ctlc = False,
+            detach_console = False,
+            create_new_console = False,
+            new_session = False,
+            child_group = Nothing,
+            child_user = Nothing,
+            use_process_jobs = False
+          })
+        iterPoint True (outputPipe, inputPipe) f [(defaultAddress,VNil)] inp
 
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
