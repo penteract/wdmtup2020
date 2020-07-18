@@ -9,6 +9,7 @@ import Data.List.Extra
 import qualified Data.Map as M
 import Data.Monoid
 import Data.Ord
+import Debug.Trace
 
 import Data
 import Parser
@@ -17,14 +18,15 @@ import Builtins
 import Send
 
 detectCross' :: Value -> Maybe (Integer, Integer)
-detectCross' = (\[c] -> detectCross . map (\(VCons (VInt x) (VInt y)) -> (x,y)) $ toList c) . toList
+detectCross' = (\c -> detectCross .
+   map (\(VCons (VInt x) (VInt y)) -> (x,y)) $ (c>>= toList)) . toList
 
 detectCross :: [(Integer, Integer)] -> Maybe (Integer, Integer)
 detectCross ps@(unzip -> (xs,ys)) = if null ps then Nothing else
   let cand_x = mode xs
       cand_y = mode ys
       all_ok = all (uncurry (||) . bimap (cand_x ==) (cand_y ==)) ps
-   in if all_ok then Just (cand_x, cand_y) else Nothing
+   in if True then Just (cand_x, cand_y) else Nothing
 
 mode :: [Integer] -> Integer
 mode = fst . head . sortOn (Down . snd) . M.toList . M.unionsWith (<>) . map (flip M.singleton (Sum 1))
@@ -48,10 +50,9 @@ drawh xs = unlines (map draw1 xs)
 
 -- Takes [[(Int,Int)]] as values and returns a sequence of images
 draw :: Value -> String
-draw v =
-  drawh (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
+--draw v = drawh (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
 
--- draw  s = ("to be drawn: "++show s)
+draw  s = ("to be drawn: "++show (length$toList s))
 
 
 alienInteract :: (Value -> Value) -> Value -> Value -> IO (Value,Value)
