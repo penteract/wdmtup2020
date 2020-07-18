@@ -33,8 +33,8 @@ type Point = (Integer,Integer)
 ui :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 ui p@(x,y) s@((_,dat):_) f = do
   print (x,y)
-  putStr (draw p dat)
-  putStr "awaiting input (type 1 character (wasd (p)rint (r)un) then press enter):"
+  -- putStr (draw p dat)
+  putStr "awaiting input (type 1 character (wasd (p)rint (r)un p(y)thon (b)ack) then press enter):"
   hFlush stdout
   inp <- getLine
   let distance = fromIntegral $ length inp
@@ -55,7 +55,7 @@ readPoint s = case break (== ' ') s of
 
 runPython :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 runPython p s@((_,dat):_) f = do
-  pt <- readProcess "python3" ["gridselect.py"] (unlines (listify3 dat))
+  pt <- readProcess "python3" ["gridselect.py"] (unlines.reverse (listify3 dat))
   case readPoint pt of
     Just p -> f True s p
     Nothing -> putStrLn "Bad Python output" >> ui p s f
