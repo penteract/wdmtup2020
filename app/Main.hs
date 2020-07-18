@@ -11,12 +11,10 @@ import Protocol
 mkPair :: Integer -> Integer -> Value
 mkPair x y = VCons (VInt $ x) (VInt $ y)
 
-getPoint = undefined
-
 iterPoint f s p = do
   (ns, dat) <- loop39 f s p
-  let cen = getPoint dat
-  iterPoint f s cen
+  let (Just (x,y)) = detectCross' dat
+  iterPoint f s (mkPair x y)
 
 main =
   catch
