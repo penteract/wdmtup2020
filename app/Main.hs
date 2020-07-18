@@ -7,7 +7,7 @@ import System.Environment
 import Data
 import Parser
 import Solve
-import AST
+import Builtins
 
 main =
   catch

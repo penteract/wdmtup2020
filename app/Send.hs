@@ -9,18 +9,17 @@ import AST
 import Data
 
 -- send data to the server and recieve a reply
-send :: Value -> IO Value
-send v = undefined {-
-    request' <- parseRequest ("POST " ++ (args !! 0))
-    let request = setRequestBodyLBS (BLU.fromString (args !! 1)) request'
-        response <- httpLBS request
-        let statuscode = show (getResponseStatusCode response)
-        case statuscode of
-          "200" -> putStrLn ("Server response: " ++ (show $ deserialize $ BLU.toString $ getResponseBody response))
-          _ -> putStrLn ("Unexpected server response:\nHTTP code: " ++ statuscode ++ "\nResponse body: " ++ BLU.toString (getResponseBody response))
-    )
-    handler
-  where
-    handler :: SomeException -> IO ()
-    handler ex = putStrLn $ "Unexpected server response:\n" ++ show ex
--}
+sendTo :: String -> Value -> IO Value
+sendTo url v = do
+    request' <- parseRequest ("POST " ++ url)
+    let request = setRequestBodyLBS (BLU.fromString (serialize v)) request'
+    response <- httpLBS request
+    let statuscode = show (getResponseStatusCode response)
+    case statuscode of
+      "200" -> do
+         let s = BLU.toString (getResponseBody response)
+         putStrLn ("Server response: " ++ s)
+         return (deserialize s)
+      _ -> error ("Unexpected server response:\nHTTP code: " ++ statuscode ++ "\nResponse body: " ++ BLU.toString (getResponseBody response))
+
+send = sendTo "https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=7897f34898d14e438f654b62eb7f8673"
