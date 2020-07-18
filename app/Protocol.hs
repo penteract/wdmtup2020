@@ -50,10 +50,11 @@ drawh xs = unlines (map draw1 xs)
 draw :: Value -> String
 draw v =
   drawh (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
-  --("to be drawn: "++show s)
+
+-- draw  s = ("to be drawn: "++show s)
 
 
-alienInteract :: (Value -> Value) -> Value -> Value -> IO Value
+alienInteract :: (Value -> Value) -> Value -> Value -> IO (Value,Value)
 alienInteract f state vec = do
   let (flag:newState:dat:end) = toList (apply (f state) vec)
   if end/=[] then print end else return ()
@@ -62,7 +63,7 @@ alienInteract f state vec = do
     print newState
     print (serialize newState)
     putStrLn (draw dat)
-    return newState
+    return (newState,dat)
   else do
     putStrLn "Continue Interaction"
     print newState
@@ -76,11 +77,14 @@ alienInteract f state vec = do
 
 -- #39
 loop39 f s v = do
-  loopn f s v 9
-  --s' <- alienInteract f s v
-  --loop39 f s' v
+  --loopn f s v 9
+  (s',dat) <- alienInteract f s v
+  if s==s' then return (s,dat)
+  else loop39 f s' v
 
-loopn f s v 0 = print "Done"
+loopn f s v 0 = do
+  print "Done"
+  return s
 loopn f s v n = do
-  s' <- alienInteract f s v
+  (s',_) <- alienInteract f s v
   loopn f s' v (n-1)
