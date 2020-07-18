@@ -1,5 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TupleSections #-}
 
 module Protocol where
 
@@ -31,21 +32,18 @@ detectCross ps@(unzip -> (xs,ys)) = if null ps then Nothing else
 mode :: [Integer] -> Integer
 mode = fst . head . sortOn (Down . snd) . M.toList . M.unionsWith (<>) . map (flip M.singleton (Sum 1))
 
-draw1 :: [(Integer,Integer)] -> String
-draw1 ps@(unzip -> (xs,ys)) = if null ps then "blank" else let
-  (xmin, xmax) = (minimum &&& maximum) xs
-  (ymin, ymax) = (minimum &&& maximum) ys
-  srted = map (((,) =<< snd.head) . sortOn fst) $ groupSortOn snd ps
-  goFrom :: Integer -> Integer -> b -> (a -> b) -> [(Integer, a)] -> [b]
-  goFrom mn mx blank fn [] = replicate (fromIntegral $ mx - mn) blank
-  goFrom mn mx blank fn ((y,l):rs) = replicate (fromIntegral $ y - mn) blank ++ (fn l:
-    goFrom (y+1) mx blank fn rs)
-  strify = goFrom xmin (xmax+1) ' ' (const '#')
-  in show (xmin,ymin)<>"\n"<>unlines( (map ( strify)) (goFrom ymin (ymax+1) [] id srted))
+draw1 :: Integer -> Integer -> Integer -> Integer -> M.Map (Integer,Integer) Char -> String
+draw1 xmin xmax ymin ymax ps = unlines $ map (\y ->
+    map (flip (M.findWithDefault ' ') ps . (,y)) [xmin .. xmax]
+  ) [ymin .. ymax]
 
 
 drawh :: [[(Integer,Integer)]] -> String
-drawh xs = unlines (map draw1 xs)
+drawh xs = unlines $ show (xmin, ymin) : map (draw1 xmin xmax ymin ymax) pointMaps
+  where (xmin, xmax) = (minimum &&& maximum) (map fst $ concat xs)
+        (ymin, ymax) = (minimum &&& maximum) (map snd $ concat xs)
+        allPoints = M.fromList (map (,'.') $ concat xs)
+        pointMaps = map (foldr (\(p,c) m -> M.insert p c m) allPoints . map (,'#')) xs
 
 
 -- Takes [[(Int,Int)]] as values and returns a sequence of images
