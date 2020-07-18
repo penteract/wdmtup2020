@@ -43,8 +43,9 @@ ui dat p@(x,y) f = do
     'y' -> runPython dat p f
 
 readPoint :: String -> Maybe Point
-readPoint s = let (a,(' ':b)) = break (== ' ') s in
-    liftA2 (,) (readMaybe a) (readMaybe b)
+readPoint s = case break (== ' ') s of
+      (a,(' ':b)) -> liftA2 (,) (readMaybe a) (readMaybe b)
+      _ -> Nothing
 
 runPython :: Value -> Point -> (Point -> IO ()) -> IO ()
 runPython dat p f = do
