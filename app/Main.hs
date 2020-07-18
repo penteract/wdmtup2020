@@ -1,13 +1,15 @@
-import Control.Exception
 import qualified Data.ByteString.Lazy.UTF8 as BLU
+
+import Control.Applicative
+import Control.Exception
+import Data.Bifunctor
+import GHC.IO
 import Network.HTTP.Simple
 import System.Environment
-import GHC.IO
 import System.IO
-import Control.Applicative
 import System.Process
-
 import Text.Read
+
 import Data
 import Parser
 import Solve
@@ -34,19 +36,33 @@ ui :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 ui p@(x,y) s@((_,dat):_) f = do
   print (x,y)
   -- putStr (draw p dat)
-  putStr "awaiting input (type 1 character (wasd (p)rint (r)un p(y)thon (b)ack) then press enter):"
+  putStrLn "(q)uit, (o)utput, (l)oad"
+  putStr "awaiting input (type 1 character (wasd (p)rint (r)un p(y)thon (b)ack) then press enter): "
   hFlush stdout
-  inp <- getLine
-  let distance = fromIntegral $ length inp
-  case head inp of
-    'w' -> ui (x,y - distance) s f
-    's' -> ui (x,y + distance) s f
-    'a' -> ui (x - distance,y) s f
-    'd' -> ui (x + distance,y) s f
+  inp <- getChar
+  case inp of
+    'w' -> ui (x,y - 1) s f
+    's' -> ui (x,y + 1) s f
+    'a' -> ui (x - 1,y) s f
+    'd' -> ui (x + 1,y) s f
     'p' -> ui p s f
     'r' -> f False s p
     'y' -> runPython p s f
     'b' -> ui p (tail s) f
+    'o' -> output p s *> ui p s f
+    'l' -> load >>= flip (uncurry ui) f
+
+output :: Point -> History -> IO ()
+output p s = do
+  putStrLn "Enter file name to save:"
+  fn <- ("saves/" <>) <$> getLine
+  writeFile fn $ show (p, map (bimap serialize serialize) s)
+
+load :: IO (Point, History)
+load = do
+  putStrLn "Enter saved filename:"
+  fn <- ("saves/" <>) <$> getLine
+  second (map $ bimap deserialize deserialize) . read <$> readFile fn
 
 readPoint :: String -> Maybe Point
 readPoint s = case break (== ' ') s of
@@ -65,7 +81,8 @@ runPython p s@((_,dat):_) f = do
       Nothing -> putStrLn ("Bad Python output: "++pt) >> ui p s f
 
 defaultAddress :: Value
-defaultAddress = deserialize "11011000011111011010110011010110000"
+defaultAddress = deserialize "110110001111110101111011000101101011011000011101100001110110001011011000101101100001110110001011011000010011110111111100110100010101101001000011101111111001101000101101100111101111011111110011010001011011010000001110111111100111001100110010011000011101111111001110011001110100110101111011111110011100110011101111000001110111111100111001101110010101100011101111111001110101001111100001000111011111110101111101010000101100001110111111101011111010100001100010111101111111011000000011010111001101100110100011010110000"
+ -- deserialize "11011000011111011010110011010110000"
 
 main =
   catch
