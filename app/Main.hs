@@ -19,18 +19,18 @@ mkPair x y = VCons (VInt $ x) (VInt $ y)
 -- The state, then the list of images.
 type History = [(Value, Value)]
 
-iterPoint :: (Value -> Value) -> History -> Value -> IO ()
-iterPoint f (s:ss) p = do
+iterPoint :: Bool -> (Value -> Value) -> History -> Value -> IO ()
+iterPoint usePy f (s:ss) p = do
   (ns, dat) <- alienInteract f (fst s) p
   -- print dat
   let (Just (x,y)) = detectCross' dat
   let nss = if s == (ns,dat) then (s:ss) else ((ns,dat):s:ss)
   print (x,y)
-  runPython (x,y) nss (\ss' p -> iterPoint f ss' (uncurry mkPair p))
+  (if usePy then runPython else ui) (x,y) nss (\up ss' p -> iterPoint up f ss' (uncurry mkPair p))
 
 type Point = (Integer,Integer)
 
-ui :: Point -> History -> (History -> Point -> IO ()) -> IO ()
+ui :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 ui p@(x,y) s@((_,dat):_) f = do
   print (x,y)
   putStr (draw p dat)
@@ -44,7 +44,7 @@ ui p@(x,y) s@((_,dat):_) f = do
     'a' -> ui (x - distance,y) s f
     'd' -> ui (x + distance,y) s f
     'p' -> ui p s f
-    'r' -> f s p
+    'r' -> f False s p
     'y' -> runPython p s f
     'b' -> ui p (tail s) f
 
@@ -53,11 +53,11 @@ readPoint s = case break (== ' ') s of
       (a,(' ':b)) -> liftA2 (,) (readMaybe a) (readMaybe b)
       _ -> Nothing
 
-runPython :: Point -> History -> (History -> Point -> IO ()) -> IO ()
+runPython :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 runPython p s@((_,dat):_) f = do
   pt <- readProcess "python3" ["gridselect.py"] (unlines (listify3 dat))
   case readPoint pt of
-    Just p -> f s p
+    Just p -> f True s p
     Nothing -> putStrLn "Bad Python output" >> ui p s f
 
 
@@ -73,7 +73,7 @@ main =
         let inp = if Prelude.length args == 2
                         then mkPair (read$ args!! 0) (read $ (args !! 1))
                         else (VCons (VInt 0) (VInt 0))
-        iterPoint f [(VNil,VNil)] inp
+        iterPoint False f [(VNil,VNil)] inp
 
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
