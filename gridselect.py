@@ -59,9 +59,8 @@ class CellGrid(Canvas):
       for row in range(ymin,ymax+1):
         line = []
         for column in range(xmin,xmax+1):
-          line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))
-        
-      self.grid.append(line)
+          line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))    
+        self.grid.append(line)
     
       self.bind("<Button-1>", self.handleMouseClick)  
     
@@ -97,7 +96,7 @@ if __name__ == "__main__" :
       ymin, ymax = min(y,ymin), max(y,ymax)
       colourMap[(x,y)] = z
   
-    grid = CellGrid(app, xmin, xmax, ymin, ymax, 7)
+    grid = CellGrid(app, xmin, xmax, ymin, ymax, 10)
     grid.pack()
   
     app.mainloop()
