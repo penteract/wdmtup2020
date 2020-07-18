@@ -48,9 +48,8 @@ drawh xs = unlines $ show (xmin, ymin) : map (draw1 xmin xmax ymin ymax) pointMa
 
 -- Takes [[(Int,Int)]] as values and returns a sequence of images
 draw :: Value -> String
---draw v = drawh (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
-
-draw  s = ("to be drawn: "++show (length$toList s))
+draw v = drawh (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
+--draw  s = ("to be drawn: "++show (length$toList s))
 
 
 alienInteract :: (Value -> Value) -> Value -> Value -> IO (Value,Value)
