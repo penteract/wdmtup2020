@@ -6,30 +6,7 @@ import System.Environment
 import Data
 import Parser
 import Solve
-import Builtins
-import Send
-
-
-
--- Takes [[(Int,Int)]] as values and returns a sequence of images
-draw :: Value -> String
-draw s = ("to be drawn: "++show s)
-
-
-alienInteract :: (Value -> Value) -> Value -> Value -> IO ()
-alienInteract f state vec = do
-  let (flag:newState:dat:_) = toList (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
-  if flag==(VInt 0) then do
-    putStrLn "Terminate Interaction"
-    print newState
-    putStrLn (draw dat)
-  else do
-    putStrLn "Continue Interaction"
-    print newState
-    resp <- send dat
-    alienInteract f newState resp
-
-
+import Protocol
 
 main =
   catch
@@ -37,7 +14,12 @@ main =
         file <- readFile "galaxy.txt"
         let vals = parse file
         let (VFunction f) = solve' 1338 (helper $ vals)
-        alienInteract f VNil (VCons (VInt 0) (VInt 0))
+        args <- getArgs
+        print args
+        -- let istate = if Prelude.length args == 2 then VCons (VInt $ read (args!! 0)) (VInt $ read (args !! 1)) else (VCons (VInt 0) (VInt 0))
+        let inp = if Prelude.length args == 2 then VCons (VInt $ read (args!! 0)) (VInt $ read (args !! 1)) else (VCons (VInt 0) (VInt 0))
+        loop39 f VNil inp
+         --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
         -- print x
         -- print (serialize (toList x !! 2))
