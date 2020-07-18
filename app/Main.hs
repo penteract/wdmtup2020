@@ -60,6 +60,8 @@ runPython p s@((_,dat):_) f = do
     Just p -> f True s p
     Nothing -> putStrLn "Bad Python output" >> ui p s f
 
+defaultAddress :: Value
+defaultAddress = deserialize "11011000011111011010110011010110000"
 
 main =
   catch
@@ -73,7 +75,7 @@ main =
         let inp = if Prelude.length args == 2
                         then mkPair (read$ args!! 0) (read $ (args !! 1))
                         else (VCons (VInt 0) (VInt 0))
-        iterPoint False f [(VNil,VNil)] inp
+        iterPoint False f [(defaultAddress,VNil)] inp
 
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
