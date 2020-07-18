@@ -2,6 +2,8 @@ import Control.Exception
 import Data.ByteString.Lazy.UTF8 as BLU
 import Network.HTTP.Simple
 import System.Environment
+import GHC.IO
+import System.IO
 
 import Data
 import Parser
@@ -16,7 +18,23 @@ iterPoint f s p = do
   -- print dat
   let (Just (x,y)) = detectCross' dat
   print (x,y)
-  iterPoint f ns (mkPair x y)
+  ui dat (x,y) (iterPoint f ns . uncurry mkPair)
+
+type Point = (Integer,Integer)
+
+ui :: Value -> Point -> (Point -> IO ()) -> IO ()
+ui dat p@(x,y) f = do
+  print (x,y)
+  putStr "awaiting input (type 1 character (wasd (p)rint (r)un) then press enter):"
+  hFlush stdout
+  inp <- getLine
+  case head inp of
+    'w' -> ui dat (x,y-1) f
+    's' -> ui dat (x,y+1) f
+    'a' -> ui dat (x-1,y) f
+    'd' -> ui dat (x+1,y) f
+    'p' -> putStr (draw dat) >> ui dat p f
+    'r' -> f p
 
 main =
   catch
