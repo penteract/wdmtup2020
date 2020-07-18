@@ -26,7 +26,7 @@ iterPoint f (s:ss) p = do
   let (Just (x,y)) = detectCross' dat
   let nss = if s == (ns,dat) then (s:ss) else ((ns,dat):s:ss)
   print (x,y)
-  ui (x,y) nss (\ss' p -> iterPoint f ss' (uncurry mkPair p))
+  runPython (x,y) nss (\ss' p -> iterPoint f ss' (uncurry mkPair p))
 
 type Point = (Integer,Integer)
 
