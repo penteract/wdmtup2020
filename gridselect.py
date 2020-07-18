@@ -114,7 +114,6 @@ def refresh():
     xmin = ymin = float('inf')
     xmax = ymax = float('-inf')
     for line in sys.stdin:
-      print(line+"x", file=sys.stderr)
       xs = line.strip().split()
       if len(xs) == 0:
         break
