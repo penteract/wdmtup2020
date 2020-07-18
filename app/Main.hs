@@ -8,6 +8,16 @@ import Parser
 import Solve
 import Protocol
 
+mkPair :: Integer -> Integer -> Value
+mkPair x y = VCons (VInt $ x) (VInt $ y)
+
+getPoint = undefined
+
+iterPoint f s p = do
+  (ns, dat) <- loop39 f s p
+  let cen = getPoint dat
+  iterPoint f s cen
+
 main =
   catch
     ( do
@@ -17,8 +27,11 @@ main =
         args <- getArgs
         print args
         -- let istate = if Prelude.length args == 2 then VCons (VInt $ read (args!! 0)) (VInt $ read (args !! 1)) else (VCons (VInt 0) (VInt 0))
-        let inp = if Prelude.length args == 2 then VCons (VInt $ read (args!! 0)) (VInt $ read (args !! 1)) else (VCons (VInt 0) (VInt 0))
-        loop39 f VNil inp
+        let inp = if Prelude.length args == 2
+                        then mkPair (read$ args!! 0) (read $ (args !! 1))
+                        else (VCons (VInt 0) (VInt 0))
+        iterPoint f VNil inp
+
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
         -- print x
