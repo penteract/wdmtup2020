@@ -19,6 +19,16 @@ import Solve
 import Builtins
 import Send
 
+vPair :: Value -> (Integer, Integer)
+vPair (VCons (VInt x) (VInt y)) = (x,y)
+
+listify2 :: Value -> [[(Integer,Integer)]]
+listify2 = map (map vPair . toList) . toList
+
+-- suitable for output to gridselect.py
+listify3 :: Value -> [String]
+listify3 = concatMap (\(a,ps) -> map (\(x,y) -> show x <> " " <> show y <> " " <> show a) ps) . zip [1..] . listify2
+
 detectCross' :: Value -> Maybe (Integer, Integer)
 detectCross' = (\c -> detectCross .
    map (\(VCons (VInt x) (VInt y)) -> (x,y)) $ (c>>= toList)) . toList
