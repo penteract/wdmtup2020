@@ -84,11 +84,16 @@ predef Multipledraw = VFunction multipleDraw
     multipleDraw VNil = VNil
     multipleDraw (VCons x xs) = VCons VPicture (multipleDraw xs)
 predef If0 = VFunction (\(VInt n) -> boolValue (n == 0))
-predef Interact = undefined
+predef Interact = VFunction (\x -> VFunction (\y -> VFunction (\z -> a2 (predef F38) x (a2 x y z))))
 predef Modem = VFunction id
-predef F38 = undefined
+predef F38 = VFunction (\x -> VFunction (\y -> undefined)) --   ap ap ap if0 ap car x0 ( ap modem ap car ap cdr x0 , ap multipledraw ap car ap cdr ap cdr x0 )
+                      -- ap ap ap interact x2 ap modem ap car ap cdr x0 ap send ap car ap cdr ap cdr x0
 predef Statelessdraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VNil, vList [vList [y]]]))
 predef Statefuldraw = VFunction (\x -> VFunction (\y -> vList [VInt 0, VCons y x, vList [VCons y x]]))
+
+a2 f x y = apply (apply f x) y
+
+
 
 intUnary :: (Integer -> Integer) -> Value
 intUnary f = VFunction (\(VInt n) -> VInt (f n))
@@ -97,8 +102,11 @@ intBinary :: (Integer -> Integer -> Integer) -> Value
 intBinary f = VFunction (\(VInt n) -> intUnary (f n))
 
 apply :: Value -> Value -> Value
-apply (VFunction f) = f
+apply (VFunction f) x = f x
+apply (VCons a b) x = apply (apply x a) b
+apply f x = error ("Bad function application: " <> show f <> "\nbeing applied to" <> show x)
 
+boolValue True = predef T
 boolValue False = predef F
 
 vList :: [Value] -> Value

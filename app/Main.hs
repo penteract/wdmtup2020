@@ -7,7 +7,7 @@ import System.Environment
 import Data
 import Parser
 import Solve
-
+import AST
 
 main =
   catch
@@ -19,7 +19,9 @@ main =
             file <- readFile "galaxy.txt"
             let vals = parse file
             let (VFunction f) = solve' 1338 (helper $ vals)
-            print (f (VInt 0))
+            let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
+            print x
+            print (serialize (toList x !! 2))
             -- server contact
 
             request' <- parseRequest ("POST " ++ (args !! 0))

@@ -23,6 +23,7 @@ whenNothingM ma ma' = do
 helper :: [Statement] -> Map Opr Expr
 helper sts = M.fromList $ [(a ^?! _Operator, b) | Equivalence a b <- sts]
 
+
 solve' :: Opr -> Map Opr Expr -> Value
 solve' v m =
   let evaluate :: Expr -> Value

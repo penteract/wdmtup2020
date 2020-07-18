@@ -6,6 +6,12 @@ import Control.Lens
 
 data Value = VFunction (Value -> Value) | VInt Integer | VCons Value Value | VNil | VPicture --I'll deal with actual pciture data later.
 
+-- Turns a properly terminated value list into a haskell list of values
+toList :: Value -> [Value]
+toList VNil = []
+toList (VCons h t) = h : toList t
+toList x = error ("not a list: "<>show x)
+
 makePrisms ''Value
 
 instance Eq Value where
