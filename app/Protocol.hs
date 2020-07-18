@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module Protocol where
@@ -7,6 +8,7 @@ import Data.Bifunctor
 import Data.List.Extra
 import qualified Data.Map as M
 import Data.Monoid
+import Data.Ord
 
 import Data
 import Parser
@@ -22,8 +24,10 @@ detectCross ps@(unzip -> (xs,ys)) = if null ps then Nothing else
   let cand_x = mode xs
       cand_y = mode ys
       all_ok = all (uncurry (||) . bimap (cand_x ==) (cand_y ==)) ps
-      mode = fst . head . sortOn snd . M.toList . foldMap (flip M.singleton $ Sum 1) 
    in if all_ok then Just (cand_x, cand_y) else Nothing
+
+mode :: [Integer] -> Integer
+mode = fst . head . sortOn (Down . snd) . M.toList . M.unionsWith (<>) . map (flip M.singleton (Sum 1))
 
 draw1 :: [(Integer,Integer)] -> String
 draw1 ps@(unzip -> (xs,ys)) = if null ps then "blank" else let
