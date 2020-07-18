@@ -1,5 +1,9 @@
+{-# LANGUAGE TupleSections #-}
+
 import Control.Exception
 import qualified Data.ByteString.Lazy.UTF8 as BLU
+import Data.Maybe
+import qualified Data.Set as S
 import Network.HTTP.Simple
 import System.Environment
 import GHC.IO
@@ -55,7 +59,7 @@ readPoint s = case break (== ' ') s of
 
 runPython :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
 runPython p s@((_,dat):_) f = do
-  pt <- readProcess "python3" ["gridselect.py"] (unlines $ reverse (listify3 dat))
+  pt <- readProcess "python3" ["gridselect.py"] (unlines $ annotations dat ++ reverse (listify3 dat))
   case pt of
     [] -> ui p s f
     'b':_ -> runPython p (tail s) f
@@ -107,3 +111,23 @@ main =
   where
     handler :: SomeException -> IO ()
     handler ex = putStrLn $ "Predicatble error:\n" ++ show ex
+
+annotations :: Value -> [String]
+annotations dat = map (\(x,y,w,h,s) -> unwords [show x, show y, show w, show h, s]) $ concatMap (annotations' . map vPair . toList) (toList dat)
+
+annotations' :: [(Integer, Integer)] -> [(Integer, Integer, Integer, Integer, String)]
+annotations' ps = flip mapMaybe ps $ (\(x0,y0') -> do
+    let y0 = y0' + 1
+    if S.member (x0-1, y0-1) img then Nothing else Just ()
+    let topBorderLength  = fromIntegral $ length $ takeWhile (flip S.member img) $ map (\n -> (x0+n,y0-1)) [0..]
+    let leftBorderLength = fromIntegral $ length $ takeWhile (flip S.member img) $ map (\n -> (x0-1,y0+n)) [0..]
+    let bits = reverse $ (\y x -> if S.member (x+x0,y+y0) img then '1' else '0') <$> [0..topBorderLength-1] <*> [0..topBorderLength-1]
+    let absValue = convertFromBits bits
+    let requireEmpty p = if S.member p img then Nothing else Just ()
+    sequence $ map (\n -> requireEmpty (n+x0, y0-2) >> requireEmpty (n+x0, y0+leftBorderLength) >> requireEmpty (x0-2, n+y0) >> requireEmpty (x0+topBorderLength, n+y0)) [(-2)..topBorderLength]
+    (x0-1, y0-1, topBorderLength+1, leftBorderLength+1,) <$> case leftBorderLength - topBorderLength of
+      0 -> Just (show absValue)
+      1 -> Just (show (-absValue))
+      _ -> Nothing
+  )
+  where img = S.fromList ps
