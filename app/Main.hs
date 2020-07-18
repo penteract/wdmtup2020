@@ -1,5 +1,5 @@
 import Control.Exception
-import Data.ByteString.Lazy.UTF8 as BLU
+import qualified Data.ByteString.Lazy.UTF8 as BLU
 import Network.HTTP.Simple
 import System.Environment
 import GHC.IO
@@ -14,7 +14,7 @@ mkPair :: Integer -> Integer -> Value
 mkPair x y = VCons (VInt $ x) (VInt $ y)
 
 iterPoint f s p = do
-  (ns, dat) <- loop39 f s p
+  (ns, dat) <- alienInteract f s p
   -- print dat
   let (Just (x,y)) = detectCross' dat
   print (x,y)
@@ -25,15 +25,17 @@ type Point = (Integer,Integer)
 ui :: Value -> Point -> (Point -> IO ()) -> IO ()
 ui dat p@(x,y) f = do
   print (x,y)
+  putStr (draw p dat)
   putStr "awaiting input (type 1 character (wasd (p)rint (r)un) then press enter):"
   hFlush stdout
   inp <- getLine
+  let distance = fromIntegral $ length inp
   case head inp of
-    'w' -> ui dat (x,y-1) f
-    's' -> ui dat (x,y+1) f
-    'a' -> ui dat (x-1,y) f
-    'd' -> ui dat (x+1,y) f
-    'p' -> putStr (draw p dat) >> ui dat p f
+    'w' -> ui dat (x,y - distance) f
+    's' -> ui dat (x,y + distance) f
+    'a' -> ui dat (x - distance,y) f
+    'd' -> ui dat (x + distance,y) f
+    'p' -> ui dat p f
     'r' -> f p
 
 main =
