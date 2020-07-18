@@ -57,10 +57,9 @@ class CellGrid(Canvas):
     
       self.grid = []
       for row in range(ymin,ymax+1):
-      
-      line = []
-      for column in range(xmin,xmax+1):
-        line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))
+        line = []
+        for column in range(xmin,xmax+1):
+          line.append(Cell(self, column - self.xmin, row - self.ymin, cellSize, get_colour(column, row)))
         
       self.grid.append(line)
     
