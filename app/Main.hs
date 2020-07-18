@@ -16,17 +16,22 @@ import Protocol
 mkPair :: Integer -> Integer -> Value
 mkPair x y = VCons (VInt $ x) (VInt $ y)
 
-iterPoint f s p = do
-  (ns, dat) <- alienInteract f s p
+-- The state, then the list of images.
+type History = [(Value, Value)]
+
+iterPoint :: (Value -> Value) -> History -> Value -> IO ()
+iterPoint f (s:ss) p = do
+  (ns, dat) <- alienInteract f (fst s) p
   -- print dat
   let (Just (x,y)) = detectCross' dat
+  let nss = if s == (ns,dat) then (s:ss) else ((ns,dat):s:ss)
   print (x,y)
-  ui dat (x,y) (iterPoint f ns . uncurry mkPair)
+  ui (x,y) nss (\ss' p -> iterPoint f ss' (uncurry mkPair p))
 
 type Point = (Integer,Integer)
 
-ui :: Value -> Point -> (Point -> IO ()) -> IO ()
-ui dat p@(x,y) f = do
+ui :: Point -> History -> (History -> Point -> IO ()) -> IO ()
+ui p@(x,y) s@((_,dat):_) f = do
   print (x,y)
   putStr (draw p dat)
   putStr "awaiting input (type 1 character (wasd (p)rint (r)un) then press enter):"
@@ -34,24 +39,25 @@ ui dat p@(x,y) f = do
   inp <- getLine
   let distance = fromIntegral $ length inp
   case head inp of
-    'w' -> ui dat (x,y - distance) f
-    's' -> ui dat (x,y + distance) f
-    'a' -> ui dat (x - distance,y) f
-    'd' -> ui dat (x + distance,y) f
-    'p' -> ui dat p f
-    'r' -> f p
-    'y' -> runPython dat p f
+    'w' -> ui (x,y - distance) s f
+    's' -> ui (x,y + distance) s f
+    'a' -> ui (x - distance,y) s f
+    'd' -> ui (x + distance,y) s f
+    'p' -> ui p s f
+    'r' -> f s p
+    'y' -> runPython p s f
+    'b' -> ui p (tail s) f
 
 readPoint :: String -> Maybe Point
 readPoint s = let (a,(' ':b)) = break (== ' ') s in
     liftA2 (,) (readMaybe a) (readMaybe b)
 
-runPython :: Value -> Point -> (Point -> IO ()) -> IO ()
-runPython dat p f = do
+runPython :: Point -> History -> (History -> Point -> IO ()) -> IO ()
+runPython p s@((dat,_):_) f = do
   pt <- readProcess "python3" ["gridselect.py"] (unlines (listify3 dat))
   case readPoint pt of
-    Just p -> f p
-    Nothing -> putStrLn "Bad Python output" >> ui dat p f
+    Just p -> f s p
+    Nothing -> putStrLn "Bad Python output" >> ui p s f
 
 
 main =
@@ -66,7 +72,7 @@ main =
         let inp = if Prelude.length args == 2
                         then mkPair (read$ args!! 0) (read $ (args !! 1))
                         else (VCons (VInt 0) (VInt 0))
-        iterPoint f VNil inp
+        iterPoint f [(VNil,VNil)] inp
 
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
