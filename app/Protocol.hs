@@ -1,13 +1,26 @@
 module Protocol where
 
-import Data.List.Extra
 import Control.Arrow
+import Data.List.Extra
+import qualified Data.Map as M
+import Data.Monoid
 
 import Data
 import Parser
 import Solve
 import Builtins
 import Send
+
+detectCross' :: Value -> Maybe (Integer, Integer)
+detectCross' = (\[c] -> detectCross . map (\(VCons (VInt x) (VInt y)) -> (x,y)) $ toList c) . toList
+
+detectCross :: [(Integer, Integer)] -> Maybe (Integer, Integer)
+detectCross ps = if null ps then Nothing else
+  let cand_x = mode $ map fst ps
+      cand_y = mode $ map snd ps
+      all_ok = all ((||) <$> (cand_x ==) . fst <*> (cand_y ==) . snd) ps
+      mode = fst . head . sortOn snd . M.toList . foldMap (flip M.singleton $ Sum 1)
+   in if all_ok then Just (cand_x, cand_y) else Nothing
 
 draw1 :: [(Integer,Integer)] -> String
 draw1 xs = if null xs then "blank" else let
