@@ -47,7 +47,7 @@ data Predef
   | Statefuldraw
   deriving (Bounded, Enum, Show, Eq, Ord)
 
-data Expr = Ap Expr Expr | List [Expr] | Operator Opr | Constant Val | Fn Predef deriving (Show)
+data Expr = Ap Expr Expr | List [Expr] | Operator Opr | Constant Val | Fn Predef | Picture deriving (Show, Eq)
 
 makePrisms ''Expr
 
