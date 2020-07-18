@@ -54,7 +54,7 @@ readPoint s = case break (== ' ') s of
       _ -> Nothing
 
 runPython :: Point -> History -> (History -> Point -> IO ()) -> IO ()
-runPython p s@((dat,_):_) f = do
+runPython p s@((_,dat):_) f = do
   pt <- readProcess "python3" ["gridselect.py"] (unlines (listify3 dat))
   case readPoint pt of
     Just p -> f s p
