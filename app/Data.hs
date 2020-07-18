@@ -3,6 +3,7 @@
 module Data where
 
 import Control.Lens
+import Data.List
 
 data Value = VFunction (Value -> Value) | VInt Integer | VCons Value Value | VNil | VPicture --I'll deal with actual pciture data later.
 
@@ -11,6 +12,13 @@ toList :: Value -> [Value]
 toList VNil = []
 toList (VCons h t) = h : toList t
 toList x = error ("not a list: "<>show x)
+
+-- Turns a properly terminated value list into a haskell list of values
+toListm :: Value -> Maybe [Value]
+toListm VNil = Just []
+toListm (VCons h t) = (h :) <$> toListm t
+toListm x = Nothing
+
 
 makePrisms ''Value
 
@@ -31,6 +39,21 @@ instance Show Value where
           showList (VCons x y) = show x ++ " . " ++ show y ++ "]"
   show VNil = "[]"
   show VPicture = "picture"
+
+pp :: Value -> Maybe String
+pp (VInt n) = Just (show n)
+pp v = case checkList v of
+  Just s -> Just s
+  Nothing -> case v of
+    (VCons a b) -> do
+      a' <- pp a
+      b' <- pp b
+      pure ("ap ap cons "++a'++" "++b')
+-- pp VNil = Just "nil"
+
+checkList :: Value -> Maybe String
+checkList x = ("( "++) . (++ " )") . intercalate " , " <$> (traverse pp =<< toListm x)
+
 
 serialize :: Value -> String
 serialize (VCons x xs) = ['1', '1'] ++ serialize x ++ serialize xs

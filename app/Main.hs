@@ -1,4 +1,5 @@
 import qualified Data.ByteString.Lazy.UTF8 as BLU
+import qualified Data.Map as M
 
 import Control.Applicative
 import Control.Exception
@@ -33,14 +34,16 @@ iterPoint usePy f (s:ss) p = do
 type Point = (Integer,Integer)
 
 ui :: Point -> History -> (Bool -> History -> Point -> IO ()) -> IO ()
-ui p@(x,y) s@((_,dat):_) f = do
+ui p@(x,y) s@((st,dat):_) f = do
   print (x,y)
   -- putStr (draw p dat)
+  print st
+  print (pp st)
   putStrLn "(q)uit, (o)utput, (l)oad"
   putStr "awaiting input (type 1 character (wasd (p)rint (r)un p(y)thon (b)ack) then press enter): "
   hFlush stdout
-  inp <- getChar
-  case inp of
+  inp <- getLine
+  case head inp of
     'w' -> ui (x,y - 1) s f
     's' -> ui (x,y + 1) s f
     'a' -> ui (x - 1,y) s f
@@ -51,6 +54,15 @@ ui p@(x,y) s@((_,dat):_) f = do
     'b' -> ui p (tail s) f
     'o' -> output p s *> ui p s f
     'l' -> load >>= flip (uncurry ui) f
+    'e' -> do
+      case parseJustExpr (tail inp) of
+        Just e -> do
+           let v = solve' 0 (M.singleton 0 e)
+           --f False ((v,VNil):s) (0,0)
+           ui p ((v,VNil):s) f
+           -- ui p _ f
+        Nothing -> print "faild parse" >> ui p s f
+
 
 output :: Point -> History -> IO ()
 output p s = do

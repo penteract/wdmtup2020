@@ -89,12 +89,18 @@ alienInteract f state vec = do
   if end/=[] then print end else return ()
   if flag==(VInt 0) then do
     putStrLn "Terminate Interaction"
+    case pp newState of
+      Just a ->  putStrLn ("state: "++a)
+      Nothing -> putStrLn "unprintable"
     print newState
     print (serialize newState)
     --putStrLn (draw (0,0) dat)
     return (newState,dat)
   else do
     putStrLn "Continue Interaction"
+    case pp newState of
+      Just a ->  putStrLn ("state: "++a)
+      Nothing -> putStrLn "unprintable"
     print newState
     print (serialize newState)
     resp <- send dat
