@@ -54,17 +54,18 @@ selectMiddle ps@(unzip ->(xs,ys)) =
         = xlo <= x && x <= xhi && ylo <= y && y <= yhi
    in filter inBounds ps
 
-drawh :: [[(Integer,Integer)]] -> String
-drawh xs = unlines $ show (xmin, ymin) : map (draw1 xmin xmax ymin ymax) pointMaps
+drawh :: (Integer, Integer) -> [[(Integer,Integer)]] -> String
+drawh cursor xs = unlines $ show (xmin, ymin) : map (draw1 xmin xmax ymin ymax . addCursor) pointMaps
   where (xmin, xmax) = (minimum &&& maximum) (map fst $ concat xs)
         (ymin, ymax) = (minimum &&& maximum) (map snd $ concat xs)
         allPoints = M.fromList (map (,'.') $ concat xs)
         pointMaps = map (foldr (\(p,c) m -> M.insert p c m) allPoints . map (,'#')) xs
+        addCursor m = M.insert cursor 'O' m
 
 
 -- Takes [[(Int,Int)]] as values and returns a sequence of images
-draw :: Value -> String
-draw v = drawh (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
+draw :: (Integer,Integer) -> Value -> String
+draw cursor v = drawh cursor (map (\ l -> map (\(VCons (VInt x) (VInt y)) -> (x,y)) (toList l) ) (toList v))
 --draw  s = ("to be drawn: "++show (length$toList s))
 
 
@@ -76,7 +77,7 @@ alienInteract f state vec = do
     putStrLn "Terminate Interaction"
     print newState
     print (serialize newState)
-    putStrLn (draw dat)
+    putStrLn (draw (0,0) dat)
     return (newState,dat)
   else do
     putStrLn "Continue Interaction"

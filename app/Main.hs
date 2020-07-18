@@ -33,7 +33,7 @@ ui dat p@(x,y) f = do
     's' -> ui dat (x,y+1) f
     'a' -> ui dat (x-1,y) f
     'd' -> ui dat (x+1,y) f
-    'p' -> putStr (draw dat) >> ui dat p f
+    'p' -> putStr (draw p dat) >> ui dat p f
     'r' -> f p
 
 main =
