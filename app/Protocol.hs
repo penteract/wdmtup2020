@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TupleSections #-}
@@ -32,9 +33,9 @@ detectCross ps@(unzip -> (xs,ys)) = if null ps then Nothing else
 mode :: [Integer] -> Integer
 mode = fst . head . sortOn (Down . snd) . M.toList . M.unionsWith (<>) . map (flip M.singleton (Sum 1))
 
-draw1 :: Integer -> Integer -> Integer -> Integer -> M.Map (Integer,Integer) Char -> String
+draw1 :: Integer -> Integer -> Integer -> Integer -> M.Map (Integer,Integer) String -> String
 draw1 xmin xmax ymin ymax ps = unlines $ map (\y ->
-    map (flip (M.findWithDefault ' ') ps . (,y)) [xmin .. xmax]
+    concatMap (flip (M.findWithDefault " ") ps . (,y)) [xmin .. xmax]
   ) [ymin .. ymax]
 
 selectMiddle :: [(Integer, Integer)] -> [(Integer, Integer)]
@@ -58,9 +59,12 @@ drawh :: (Integer, Integer) -> [[(Integer,Integer)]] -> String
 drawh cursor xs = unlines $ show (xmin, ymin) : map (draw1 xmin xmax ymin ymax . addCursor) pointMaps
   where (xmin, xmax) = (minimum &&& maximum) (map fst $ concat xs)
         (ymin, ymax) = (minimum &&& maximum) (map snd $ concat xs)
-        allPoints = M.fromList (map (,'.') $ concat xs)
-        pointMaps = map (foldr (\(p,c) m -> M.insert p c m) allPoints . map (,'#')) xs
-        addCursor m = M.insert cursor 'O' m
+        allPoints = M.fromList (map (,".") $ concat xs)
+        pointMaps = map (foldr (\(p,c) m -> M.insert p c m) allPoints . map (,"#")) xs
+        addCursor = M.alter (\case
+            Nothing -> Just "\x1b[101m \x1b[49m"
+            Just s -> Just ("\x1b[101m"++s++"\x1b[49m")
+          ) cursor
 
 
 -- Takes [[(Int,Int)]] as values and returns a sequence of images
