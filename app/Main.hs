@@ -19,6 +19,7 @@ import Data
 import Parser
 import Solve
 import Protocol
+import AST
 
 mkPair :: Integer -> Integer -> Value
 mkPair x y = VCons (VInt $ x) (VInt $ y)
@@ -67,6 +68,12 @@ ui pipes p@(x,y) s@((st,dat):_) f = do
            -- ui p _ f
         Nothing -> print "faild parse" >> ui pipes p s f
 
+eval :: Expr -> Value
+eval e = solve' 0 (M.singleton 0 e)
+
+estring :: String -> Value
+estring s = let (Just e) = parseJustExpr s in eval e
+
 output :: Point -> History -> IO ()
 output p s = do
   putStrLn "Enter file name to save:"
@@ -112,6 +119,12 @@ main =
         args <- getArgs
         print args
         -- let istate = if Prelude.length args == 2 then VCons (VInt $ read (args!! 0)) (VInt $ read (args !! 1)) else (VCons (VInt 0) (VInt 0))
+        let initial = if Prelude.length args == 1
+                       then estring (head args)
+                       else defaultAddress
+
+
+
         let inp = if Prelude.length args == 2
                         then mkPair (read$ args!! 0) (read $ (args !! 1))
                         else (VCons (VInt 0) (VInt 0))
@@ -132,7 +145,7 @@ main =
             child_user = Nothing,
             use_process_jobs = False
           })
-        iterPoint True (outputPipe, inputPipe) f [(defaultAddress,VNil)] inp
+        iterPoint True (outputPipe, inputPipe) f [(initial,VNil)] inp
 
          --(VCons (VInt 0) (VInt 0))
         -- let x = (apply (f (VNil)) (VCons (VInt 0) (VInt 0)))
