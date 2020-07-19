@@ -22,7 +22,7 @@ sendTo url v = do
          let val = deserialize s
          print val
          putStrLn "We Contacted The Server. please take note (tell the others!!!) then press enter:"
-         _ <- getLine
+         -- _ <- getLine
          return val
       _ -> error ("Unexpected server response:\nHTTP code: " ++ statuscode ++ "\nResponse body: " ++ BLU.toString (getResponseBody response))
 
