@@ -63,7 +63,7 @@ ui pipes p@(x,y) s@((st,dat):_) f = do
         Just e -> do
            let v = solve' 0 (M.singleton 0 e)
            --f False ((v,VNil):s) (0,0)
-           ui p ((v,VNil):s) f
+           ui pipes p ((v,VNil):s) f
            -- ui p _ f
         Nothing -> print "faild parse" >> ui pipes p s f
 
